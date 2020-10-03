@@ -1,0 +1,7 @@
+---
+Name: "barrido"
+Repo: "https://gitlab.com/Zer1t0/barrido"
+Language: "rust"
+---
+
+Tool to discover paths in web applications.

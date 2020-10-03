@@ -191,3 +191,14 @@ footer a {
     color: inherit;
     font-style: italic;
 }
+
+
+.img-16 {
+    width: 16px;
+    height: 16px;
+}
+
+.img-32 {
+    width: 32px;
+    height: 32px;
+}

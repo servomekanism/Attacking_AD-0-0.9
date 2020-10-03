@@ -7,19 +7,20 @@
     {{ range (where $pages "Section" "!=" "") }}
     <dt class="main-list-item-header">
         &gt; <span class="main-list-title">
-        <a target="_blank" href="{{ .Params.repo }}">{{ .Params.name}}</a>
+        <a target="_blank" href="{{ .Params.repo }}">
+            {{ .Params.name }}</a>
         </span>
 
         {{ if (in .Params.repo "gitlab" ) }}
-        <img width="16" height="16" src="/images/gitlab.png">
+        <img class="img-16" src="/images/gitlab.png">
         {{ else if (in .Params.repo "github")}}
-        <img width="16" height="16" src="/images/github.png">
+        <img class="img-16" src="/images/github.png">
         {{ end }}
 
         {{ if (in .Params.language "rust")}}
-        <img width="16" height="16" src="/images/rust.png">
+        <img class="img-16" src="/images/rust.png">
         {{ else if (in .Params.language "python")}}
-        <img width="16" height="16" src="/images/python.png">
+        <img class="img-16" src="/images/python.png">
         {{ end }}
     </dt>
     <dd class="main-list-item-description">

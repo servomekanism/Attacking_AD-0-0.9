@@ -1,5 +1,7 @@
 <h1> &gt; {{ .Title | markdownify }}</h1>
 
+{{ .Content }}
+
 <ul id="main-list">
     {{ $pages := .Pages }}
     {{ range (where $pages "Section" "!=" "") }}

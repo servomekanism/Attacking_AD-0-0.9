@@ -1,20 +1,12 @@
-<!DOCTYPE html>
-<html lang="{{ .Site.LanguageCode }}">
-    {{ partial "head.html" . }}
-    <body>
-        {{ partial "header.html" . }}
-        <br/>
+{{ partial "top.html" . }}
+<h1>{{ .Title }}</h1>
 
-        <h1>{{ .Title }}</h1>
+<ul class="terms">
+    {{ range .Data.Terms }}
+    <li>
+        <a href="{{ .Page.Permalink }}">{{ .Page.Title }}</a> ({{ .Count }})
+    </li>
+    {{ end }}
+</ul>
 
-        <ul class="terms">
-            {{ range .Data.Terms }}
-            <li>
-                <a href="{{ .Page.Permalink }}">{{ .Page.Title }}</a> ({{ .Count }})
-            </li>
-            {{ end }}
-        </ul>
-
-        {{ partial "footer.html" . }}
-    </body>
-</html>
+{{ partial "bottom.html" . }}

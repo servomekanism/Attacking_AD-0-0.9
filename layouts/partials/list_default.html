@@ -1,6 +1,6 @@
 <h1> &gt; {{ .Title | markdownify }}
     {{ if .Params.rss }}<a href="{{ with .OutputFormats.Get "RSS" }}{{ .RelPermalink }}{{ end }}">
-        <img width="16" height="16" src="/images/rss.png">
+        <img class="img-16" src='{{ "/images/rss.png" | relURL }}'>
     </a> {{ end }}
 </h1>
     

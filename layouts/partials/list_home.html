@@ -1,0 +1,17 @@
+
+{{ .Content }}
+    
+<ul id="main-list">
+    {{ $pages := .Site.RegularPages }}
+    {{ range (where $pages "Section" "!=" "") }}
+    <dt class="main-list-item-header">
+        <span class="main-list-title">
+            &gt; <a href="{{ .RelPermalink }}">{{ .Title | markdownify }}</a>
+        </span>
+        <span class="main-list-date">{{ .Date.Format "2006/01/02" }}</span>
+    </dt>
+    <dd class="main-list-item-description">
+        {{ .Description }}          
+    </dd>
+    {{ end }}
+</ul>

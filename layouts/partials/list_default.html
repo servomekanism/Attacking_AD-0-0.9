@@ -1,0 +1,22 @@
+<h1> &gt; {{ .Title | markdownify }}
+    {{ if .Params.rss }}<a href="{{ with .OutputFormats.Get "RSS" }}{{ .RelPermalink }}{{ end }}">
+        <img width="16" height="16" src="/images/rss.png">
+    </a> {{ end }}
+</h1>
+    
+{{ .Content }}
+    
+<ul id="main-list">
+    {{ $pages := .Pages }}
+    {{ range (where $pages "Section" "!=" "") }}
+    <dt class="main-list-item-header">
+        <span class="main-list-title">
+            &gt; <a href="{{ .RelPermalink }}">{{ .Title | markdownify }}</a>
+        </span>
+        <span class="main-list-date">{{ .Date.Format "2006/01/02" }}</span>
+    </dt>
+    <dd class="main-list-item-description">
+        {{ .Description }}          
+    </dd>
+    {{ end }}
+</ul>

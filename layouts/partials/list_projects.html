@@ -1,0 +1,15 @@
+<h1> &gt; {{ .Title | markdownify }}</h1>
+
+<ul id="main-list">
+    {{ $pages := .Pages }}
+    {{ range (where $pages "Section" "!=" "") }}
+    <dt class="main-list-item-header">
+        <span class="main-list-title">
+            &gt; <a href="{{ .Params.repo }}">{{ .Params.name}}</a>
+        </span>
+    </dt>
+    <dd class="main-list-item-description">
+        {{ .Content }}          
+    </dd>
+    {{ end }}
+</ul>

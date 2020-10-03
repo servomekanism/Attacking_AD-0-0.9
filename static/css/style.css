@@ -3,6 +3,7 @@ body {
   margin: auto;
   padding: .2em;
   line-height: 1.5em;
+  color: #222;
 }
 
 /* Table of Contents, if wanted
@@ -24,19 +25,29 @@ output:
 .menu li { display: inline-block; }
 .article-meta, .menu a {
   text-decoration: none;
-  background: #E8DBC5;
-  color: #000;
+  background: #fafafa;
+  color: #222;
   padding: 5px;
-  border-radius: 5px;
-  border-style: dotted;
-  border-width: 1px;
   margin-bottom: 20px;
+  border-bottom: 0.2rem solid #555;
 }
 
-.terms { font-size: .9em; }
-.menu, .article-meta, footer { text-align: center; }
-.title { font-size: 1.1em; }
-footer a { text-decoration: none; }
+#article-subtitle {
+    margin-left: 4rem;
+    color: #444;
+}
+
+#article-author {
+    font-style: italic;
+}
+
+.terms {
+    font-size: .9em;
+}
+.menu {
+    text-align: center;
+}
+
 
 .pull-left {
     float: left
@@ -46,8 +57,7 @@ footer a { text-decoration: none; }
 }
 
 a {
-  color: #613DC1;
-  text-decoration: none;
+    text-decoration: none;
 }
 
 a:hover {
@@ -61,7 +71,7 @@ header {
     height: 1.75rem;
     font-size: 1rem;
     background: #222;
-    border-bottom: 1px solid #000;
+    margin-bottom: 1rem;
 }
 
 header ul,
@@ -145,6 +155,12 @@ tr:nth-child(even) { background: #eee }
 
 .main-list-title {
     font-size: 120%;
+    color: #000;
+    font-weight: bold;
+}
+
+.main-list-title a {
+    color: inherit;
 }
 
 .main-list-date {
@@ -161,19 +177,17 @@ figcaption {
     font-style: italic;
 }
 
-
-#page-container {
-    position: relative;
-    height: 100%;
-}
-
-#page-content {
-    padding-bottom: 2.5rem;
-}
-
 footer {
     width: 100%;
-    height: 2.5rem;
+    height: 2.0rem;
     background: #222;
-    color: #eee;
+    color: #999;
+    margin-top: 2rem;
+    padding-top: 0.4rem;
+    text-align: center;
+}
+
+footer a {
+    color: inherit;
+    font-style: italic;
 }

@@ -1,9 +1,11 @@
 {{ partial "top.html" . }}
 
 <div class="article-meta">
-    <h1><span class="title">{{ .Title | markdownify }}</span></h1>
-    {{ with .Params.author }}<h2 class="author">{{ . }}</h2>{{ end }}
-    {{ if .Params.date }}<h2 class="date">{{ .Date.Format "2006/01/02" }}</h2>{{ end }}
+    <h1>> <span id="article-title">{{ .Title | markdownify }}</span></h1>
+
+    <p id="article-subtitle">
+        By <span id="article-author">{{ .Params.author }}</span> in <span id="article-date">{{ .Date.Format "2006/01/02"}}</span>
+    </p>
     <p class="terms">
         {{ range $i := (slice "categories" "tags") }}
         {{ with ($.Param $i) }}

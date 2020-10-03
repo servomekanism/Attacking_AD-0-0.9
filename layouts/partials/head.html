@@ -1,25 +1,19 @@
-<!DOCTYPE html>
-<html lang="{{ .Site.LanguageCode }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <meta name="description" content="{{ if .Description }}{{ .Description }}{{ else }}{{ .Site.Params.Description }}{{ end }}">
+    <meta name="description" content="{{ if .Description }}{{ .Description }}{{ else }}{{ .Site.Params.Description }}{{ end }}">
 
-        <title>{{ .Title }} | {{ .Site.Title }}</title>
+    <title>{{ .Title }} | {{ .Site.Title }}</title>
         
-        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
-        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-        <script>hljs.initHighlightingOnLoad();</script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
 
         
-        <link rel="stylesheet" href="{{ "/css/style.css" | relURL }}" />
-        <link rel="stylesheet" href="{{ "/css/fonts.css" | relURL }}" />
+    <link rel="stylesheet" href="{{ "/css/style.css" | relURL }}" />
+    <link rel="stylesheet" href="{{ "/css/fonts.css" | relURL }}" />
         {{ range .Site.Params.custom_css -}}
-        <link rel="stylesheet" href="{{ . | absURL }}">
+    <link rel="stylesheet" href="{{ . | absURL }}">
         {{- end }}
-    </head>
-
-    <body>
-        {{ partial "header.html" . }}
-        <br/>
+</head>

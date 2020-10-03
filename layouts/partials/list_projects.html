@@ -12,15 +12,15 @@
         </span>
 
         {{ if (in .Params.repo "gitlab" ) }}
-        <img class="img-16" src="/images/gitlab.png">
+        <img class="img-16" src='{{ "/images/gitlab.png" | relURL }}'>
         {{ else if (in .Params.repo "github")}}
-        <img class="img-16" src="/images/github.png">
+        <img class="img-16" src='{{ "/images/github.png" | relURL }}'>
         {{ end }}
 
         {{ if (in .Params.language "rust")}}
-        <img class="img-16" src="/images/rust.png">
+        <img class="img-16" src='{{ "/images/rust.png" | relURL }}'>
         {{ else if (in .Params.language "python")}}
-        <img class="img-16" src="/images/python.png">
+        <img class="img-16" src='{{ "/images/python.png" | relURL }}'>
         {{ end }}
     </dt>
     <dd class="main-list-item-description">

@@ -132,6 +132,10 @@ tr:nth-child(even) { background: #eee }
   padding: 0px 12px 0px 12px;
 }
 
+.content-wrapper dd {
+    font-size: 90%;
+}
+
 #main-image {
   min-width: 40px;
   float: right;

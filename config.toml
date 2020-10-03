@@ -1,0 +1,29 @@
+baseURL = "http://example.org/"
+languageCode = "en-us"
+title = "1 t0 Zero"
+theme = ""
+
+
+[permalinks]
+    post = "/post/:year/:month/:day/:slug/"
+
+[[menu.main]]
+    name = "Posts"
+    url = "/posts/"
+    weight = 1
+[[menu.main]]
+    name = "Projects"
+    url = "/projects/"
+    weight = 2
+
+[[menu.main]]
+    name = "Whoami"
+    url = "/whoami/"
+    weight = 2
+
+[[menu.feed]]
+    name = "rss"
+    url = "/index.xml"
+
+[params]
+custom_css = ["css/footer.css"]

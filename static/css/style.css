@@ -72,6 +72,9 @@ header {
     font-size: 1rem;
     background: #222;
     margin-bottom: 1rem;
+    padding-bottom: 0.2rem;
+    padding-top: 0.2rem;
+    border-radius: 2px;
 }
 
 header ul,
@@ -81,7 +84,7 @@ header ol {
     list-style: none
 }
 header nav {
-    padding: 0 0.5rem
+    padding: 0 0.5rem;
 }
 
 header a {
@@ -185,6 +188,7 @@ footer {
     margin-top: 2rem;
     padding-top: 0.4rem;
     text-align: center;
+    border-radius: 2px;
 }
 
 footer a {

@@ -11,19 +11,13 @@ theme = ""
     name = "Posts"
     url = "/posts/"
     weight = 1
+
 [[menu.main]]
     name = "Projects"
     url = "/projects/"
-    weight = 2
+    weight = 1
 
 [[menu.main]]
-    name = "Whoami"
-    url = "/whoami/"
-    weight = 2
-
-[[menu.feed]]
-    name = "rss"
-    url = "/index.xml"
-
-[params]
-custom_css = ["css/footer.css"]
+    name = "About"
+    url = "/about/"
+    weight = 3

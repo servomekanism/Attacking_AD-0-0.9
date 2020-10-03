@@ -1,7 +1,6 @@
 baseURL = "http://example.org/"
 languageCode = "en-us"
 title = "1 t0 Zero"
-theme = ""
 
 
 [permalinks]

@@ -1,0 +1,5 @@
+#+title: tickey
+#+repo: https://github.com/TarlogicSecurity/tickey
+#+language: c
+
+Tool to extract Kerberos tickets from Linux kernel keys.

@@ -1,0 +1,5 @@
+#+title: kerbeiros
+#+repo: https://gitlab.com/Zer1t0/kerbeiros
+#+language: rust
+
+A set of libraries to work with the Kerberos protocol in rust.

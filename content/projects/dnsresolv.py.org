@@ -1,0 +1,6 @@
+#+title: dnsresolv.py
+#+repo: https://gitlab.com/Zer1t0/dnsresolv.py
+#+language: python
+
+Console utility to resolve the ip or hostname of several targets.
+

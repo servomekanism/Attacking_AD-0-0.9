@@ -1,0 +1,6 @@
+#+title: wap
+#+repo: https://github.com/blackarrowsec/wap
+#+language: python
+
+Library to parse [[https://wappalyzer.com/][Wappalyzer]] [[https://github.com/AliasIO/wappalyzer/blob/master/src/technologies.json][technologies.json]] and use its rules to discover web
+technologies by looking in the HTTP responses.

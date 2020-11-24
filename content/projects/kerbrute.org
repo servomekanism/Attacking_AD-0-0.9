@@ -1,0 +1,5 @@
+#+title: kerbrute
+#+repo: https://github.com/TarlogicSecurity/kerbrute
+#+language: python
+
+An script to perform kerberos bruteforcing by using the Impacket library.

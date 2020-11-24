@@ -1,0 +1,6 @@
+#+title: heap_explorer
+#+repo: https://gitlab.com/Zer1t0/heap_explorer
+#+language: python
+
+A library to parse the structures of the glibc malloc heap.
+

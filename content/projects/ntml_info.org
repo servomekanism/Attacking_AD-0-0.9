@@ -1,0 +1,5 @@
+#+title: ntml-info
+#+repo: https://gitlab.com/Zer1t0/ntlm-info
+#+language: python
+
+Tool to get system information from the NTLM handshake of several endpoints.

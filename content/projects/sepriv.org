@@ -1,0 +1,7 @@
+#+title: sepriv
+#+repo: https://github.com/TarlogicSecurity/sepriv
+#+language: c
+
+Tool to modify windows user privileges. It allows to add or delete privileges
+from an user, as well as enable or disable the privileges of processes tokens.
+

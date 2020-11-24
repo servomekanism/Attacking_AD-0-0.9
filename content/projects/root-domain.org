@@ -1,0 +1,6 @@
+#+title: root-domain
+#+repo: https://gitlab.com/Zer1t0/root-domain
+#+language: python
+
+Console utility to parse a list the subdomains and extract the root domains.
+

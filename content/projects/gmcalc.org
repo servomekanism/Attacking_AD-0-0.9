@@ -1,0 +1,7 @@
+#+title: gmcalc
+#+repo: https://github.com/hackliza/gmcalc
+#+language: python
+
+gmcalc is a glibc malloc calculator that allows to found the relations between
+the malloc sizes, the chunk sizes and the bins.
+

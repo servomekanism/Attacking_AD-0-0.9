@@ -1,0 +1,6 @@
+#+title: httpfileserver
+#+repo: https://gitlab.com/Zer1t0/httpfileserver
+#+language: rust
+
+A simple http server that allows to easily download/upload files.
+

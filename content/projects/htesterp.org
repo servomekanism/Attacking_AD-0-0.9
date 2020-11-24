@@ -1,0 +1,5 @@
+#+title: htesterp
+#+repo: https://gitlab.com/Zer1t0/htesterp
+#+language: rust
+
+Console utility to check if a host has HTTP endpoints.

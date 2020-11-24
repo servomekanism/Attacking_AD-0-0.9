@@ -1,6 +1,9 @@
----
-title: Posts
-rss: True
----
+#+title: Posts
+#+rss: false
 
-A excellent selection of my best works.
+Here are some posts I have written.
+
+- [[https://hackliza.gal/en/posts/r2heap/][Heap analysis with radare2]] [[https://hackliza.gal/posts/r2heap/][{gl}]]
+- [[https://www.tarlogic.com/en/blog/how-kerberos-works/][Kerberos I: How does Kerberos work?]] [[https://www.tarlogic.com/blog/como-funciona-kerberos/][{es}]]
+- [[https://www.tarlogic.com/en/blog/how-to-attack-kerberos/][Kerberos II: How to attack Kerberos?]] [[https://www.tarlogic.com/blog/como-atacar-kerberos/][{es}]]
+- [[https://www.tarlogic.com/en/blog/kerberos-iii-how-does-delegation-work/][Kerberos III: How does delegation works?]] [[https://www.tarlogic.com/blog/kerberos-iii-como-funciona-la-delegacion/][{es}]] 

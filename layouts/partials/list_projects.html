@@ -11,6 +11,10 @@
             {{ .Title }}</a>
         </span>
 
+        {{ if (in .Params.repo "hackliza" ) }}
+        <a href="https://hackliza.gal"><img class="img-16" src='{{ "/images/hackliza.png" | relURL }}'></a>
+        {{ end }}
+
         {{ if (in .Params.repo "gitlab" ) }}
         <img class="img-16" src='{{ "/images/gitlab.png" | relURL }}'>
         {{ else if (in .Params.repo "github")}}
@@ -18,9 +22,9 @@
         {{ end }}
 
         {{ if (in .Params.language "rust")}}
-        <img class="img-16" src='{{ "/images/rust.png" | relURL }}'>
+        <a href="https://www.rust-lang.org/"><img class="img-16" src='{{ "/images/rust.png" | relURL }}'></a>
         {{ else if (in .Params.language "python")}}
-        <img class="img-16" src='{{ "/images/python.png" | relURL }}'>
+        <a href="https://www.python.org/"><img class="img-16" src='{{ "/images/python.png" | relURL }}'></a>
         {{ else if (in .Params.language "c")}}
         <img class="img-16" src='{{ "/images/c.png" | relURL }}'>
         {{ end }}

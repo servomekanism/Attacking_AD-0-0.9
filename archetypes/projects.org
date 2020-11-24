@@ -1,5 +1,4 @@
----
-name: '{{ .Name }}'
-repo: ''
-language: ''
----
+#+title: {{ .Name }}
+#+repo: ''
+#+language: ''
+

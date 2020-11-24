@@ -1,7 +1,6 @@
----
-Name: "cerbero"
-Repo: https://gitlab.com/Zer1t0/cerbero
-Language: "rust"
----
+#+title: cerbero
+#+repo: https://gitlab.com/Zer1t0/cerbero
+#+language: rust
+
 
 Kerberos protocol attacker.

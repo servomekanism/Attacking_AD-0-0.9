@@ -1,7 +1,6 @@
----
-Name: 'wappy'
-Repo: 'https://github.com/blackarrowsec/wappy'
-Language: 'python'
----
+#+title: wappy
+#+repo: https://github.com/blackarrowsec/wappy
+#+language: python
+
 
 Tool to discover technologies in web applications, based on the rules of [[https://www.wappalyzer.com/][Wappalyzer]].

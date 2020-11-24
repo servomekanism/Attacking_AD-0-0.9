@@ -1,10 +1,6 @@
----
-Name: 'pivotnacci'
-Repo: 'https://github.com/blackarrowsec/pivotnacci'
-Language: 'python'
----
+#+title: pivotnacci
+#+repo: https://github.com/blackarrowsec/pivotnacci
+#+language: python
 
 Tool to deploy HTTP agents in web servers and pivot to the internal network.
-
-To install: ~pip3 install pivotnacci~.
 

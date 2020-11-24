@@ -1,3 +1,6 @@
 #+title: Projects
 
-List of my software projects:
+I will let here an index of my tools, since they are scattered throughout
+different repos due to they are created both in my free time and as part of my
+work.
+

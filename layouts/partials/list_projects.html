@@ -21,6 +21,8 @@
         <img class="img-16" src='{{ "/images/rust.png" | relURL }}'>
         {{ else if (in .Params.language "python")}}
         <img class="img-16" src='{{ "/images/python.png" | relURL }}'>
+        {{ else if (in .Params.language "c")}}
+        <img class="img-16" src='{{ "/images/c.png" | relURL }}'>
         {{ end }}
     </dt>
     <dd class="main-list-item-description">

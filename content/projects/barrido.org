@@ -3,4 +3,5 @@
 #+language: rust
 
 
-Tool to discover paths in web applications.
+Tool to discover paths in several web applications at once. It includes several
+options to filter the requests based in path, body and headers.

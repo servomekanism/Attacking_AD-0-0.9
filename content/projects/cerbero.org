@@ -3,4 +3,5 @@
 #+language: rust
 
 
-Kerberos protocol attacker.
+A tool to interact and attack the Kerberos protocol. It includes different
+commands to perform Kerberos related actions.

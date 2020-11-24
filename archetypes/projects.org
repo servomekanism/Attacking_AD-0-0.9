@@ -1,4 +1,4 @@
 #+title: {{ .Name }}
-#+repo: ''
-#+language: ''
+#+repo: 
+#+language: 
 

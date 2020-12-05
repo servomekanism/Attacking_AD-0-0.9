@@ -1,8 +1,9 @@
 body {
-  max-width: 800px;
+  max-width: 1200px;
   margin: auto;
   padding: .2em;
   line-height: 1.5em;
+  font-size: 0.9em;
   color: #222;
 }
 
@@ -104,6 +105,7 @@ pre {
   background: #f8f8f8;
   padding: 1em;
   overflow-x: auto;
+  line-height: 1.2em;
 }
 code { background: #f9f9f9; }
 pre code { background: none; }
@@ -118,7 +120,6 @@ main {
   max-width: 650px;
   margin-left: auto;
   margin-right: auto;
-  line-height: 1.7em;
   hyphens: auto;
   display: block;
   font-size: 1.1em;
@@ -143,6 +144,10 @@ tr:nth-child(even) { background: #eee }
 
 .content-wrapper {
   padding: 0px 12px 0px 12px;
+}
+
+.article-content dt {
+    font-weight: bold;
 }
 
 .article-content dd {

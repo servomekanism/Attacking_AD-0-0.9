@@ -3,7 +3,22 @@
 
 Here are some posts I have written.
 
-- [[https://hackliza.gal/en/posts/r2heap/][Heap analysis with radare2]] [[https://hackliza.gal/posts/r2heap/][{gl}]]
-- [[https://www.tarlogic.com/en/blog/how-kerberos-works/][Kerberos I: How does Kerberos work?]] [[https://www.tarlogic.com/blog/como-funciona-kerberos/][{es}]]
-- [[https://www.tarlogic.com/en/blog/how-to-attack-kerberos/][Kerberos II: How to attack Kerberos?]] [[https://www.tarlogic.com/blog/como-atacar-kerberos/][{es}]]
-- [[https://www.tarlogic.com/en/blog/kerberos-iii-how-does-delegation-work/][Kerberos III: How does delegation works?]] [[https://www.tarlogic.com/blog/kerberos-iii-como-funciona-la-delegacion/][{es}]] 
+- [[https://hackliza.gal/en/posts/console_usability/][Tricks to improve console programs usability]] [[https://hackliza.gal/posts/console_usability/][{gl}]] :: A description of some
+     tricks that have learnt from my experience that enhances the user
+     experience of Linux console programs.
+- [[https://hackliza.gal/en/posts/r2heap/][Heap analysis with radare2]] [[https://hackliza.gal/posts/r2heap/][{gl}]] :: A review of the glibc allocator that
+     manages the heap as well as the [[https://github.com/radareorg/radare2][radare2]] module to examinate its structures
+     by using the debugger.
+- [[https://www.tarlogic.com/en/blog/how-kerberos-works/][Kerberos I: How does Kerberos work?]] [[https://www.tarlogic.com/blog/como-funciona-kerberos/][{es}]] :: An introduction to the Kerberos
+     protocol in Active Directory. The post describes the elements of the
+     Kerberos environment, the basic procedures to get and use Kerberos tickets
+     and the most common attacks against Kerberos.
+- [[https://www.tarlogic.com/en/blog/how-to-attack-kerberos/][Kerberos II: How to attack Kerberos?]] [[https://www.tarlogic.com/blog/como-atacar-kerberos/][{es}]] :: A review of the most basic
+     Kerberos attacks that includes practical examples of how use known tools to
+     attack Kerberos. The attacks included are: Brute-forcing, ASREProast,
+     Kerberoast, Pass The Key/Over Pass the Hash, Pass the Ticket, Silver and
+     Golden ticket. 
+- [[https://www.tarlogic.com/en/blog/kerberos-iii-how-does-delegation-work/][Kerberos III: How does delegation works?]] [[https://www.tarlogic.com/blog/kerberos-iii-como-funciona-la-delegacion/][{es}]] :: A description of the
+     mechanism used by Kerberos to perform delegation in an Active Directory
+     environment. It also includes some attack scenarios where an pentester can
+     take advantage of Kerberos delegation.

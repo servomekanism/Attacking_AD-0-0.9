@@ -1,6 +1,8 @@
 #+title: Challenges
 
-Here there are some sites with challenges to practice different skills.
+Here there are some sites with free challenges to practice different skills. I
+always forget their names/sites so I take note here to remember them, and share in
+case it could be useful for someone.
 
 ** CTFs
 - [[https://ctftime.org/][CTFtime.org]]
@@ -17,6 +19,7 @@ Here there are some sites with challenges to practice different skills.
 - https://notsosecure.com/vulnerable-docker-vm/
 
 ** Exploiting
+- http://pwnable.kr/
 - http://exploit.education/
 - https://ropemporium.com/
 - https://github.com/shellphish/how2heap
@@ -25,8 +28,10 @@ Here there are some sites with challenges to practice different skills.
 - https://overthewire.org/
 - https://www.root-me.org/
 - https://ctflearn.com/
+- https://ringzer0ctf.com/
 - https://tryhackme.com/
-- ssh://level0@gracker.org Password:level0
+- https://w3challs.com/
+- http://gracker.org/
 
 ** Powershell
 - https://www.underthewire.tech
@@ -41,11 +46,13 @@ Here there are some sites with challenges to practice different skills.
 ** Reversing
 - https://challenges.re/
 - https://github.com/ytisf/theZoo
-
+- http://reversing.kr/
+  
 ** SysAdmin
 - https://github.com/trimstray/test-your-sysadmin-skills
 
-** Web Security
+** Web
 - [[https://portswigger.net/web-security]]
 - [[https://ctfchallenge.co.uk]]
+- https://pentesterlab.com/exercises
    

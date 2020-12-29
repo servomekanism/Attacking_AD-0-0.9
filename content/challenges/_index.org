@@ -1,0 +1,51 @@
+#+title: Challenges
+
+Here there are some sites with challenges to practice different skills.
+
+** CTFs
+- [[https://ctftime.org/][CTFtime.org]]
+
+** AWS Security
+- http://flaws.cloud/
+- http://flaws2.cloud/
+
+** Crypto
+- https://cryptopals.com/
+- https://cryptohack.org/
+
+** Docker
+- https://notsosecure.com/vulnerable-docker-vm/
+
+** Exploiting
+- http://exploit.education/
+- https://ropemporium.com/
+- https://github.com/shellphish/how2heap
+
+** Misc
+- https://overthewire.org/
+- https://www.root-me.org/
+- https://ctflearn.com/
+- https://tryhackme.com/
+- ssh://level0@gracker.org Password:level0
+
+** Powershell
+- https://www.underthewire.tech
+
+** Programming
+- https://github.com/donnemartin/interactive-coding-challenges
+
+** Pentest
+- https://www.hackthebox.eu/
+- https://www.vulnhub.com/
+
+** Reversing
+- https://challenges.re/
+- https://github.com/ytisf/theZoo
+
+** SysAdmin
+- https://github.com/trimstray/test-your-sysadmin-skills
+
+** Web Security
+- [[https://portswigger.net/web-security]]
+- [[https://ctfchallenge.co.uk]]
+   

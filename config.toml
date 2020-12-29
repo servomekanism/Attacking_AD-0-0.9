@@ -1,6 +1,6 @@
 baseURL = "https://zer1t0.gitlab.io/"
 languageCode = "en-us"
-title = "1 t0 Zero"
+title = "zer1t0"
 
 
 [permalinks]
@@ -20,3 +20,8 @@ title = "1 t0 Zero"
     name = "About"
     url = "/about/"
     weight = 3
+
+[[menu.main]]
+    name = "challenges"
+    url = "/challenges"
+    weight = 2

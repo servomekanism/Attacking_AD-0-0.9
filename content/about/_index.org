@@ -1,5 +1,11 @@
 #+title: About
 
 
+* Contact
+
+- Email: [[mailto:zer1t0ps@protonmail.com][zer1t0ps@protonmail.com]]
+
+I don't know how much it would take me to respond.
+
 * About this web page
 This web style is based on the [[https://themes.gohugo.io/hugo-classic/][Hugo Classic]] theme. 

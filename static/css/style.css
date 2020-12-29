@@ -163,12 +163,9 @@ tr:nth-child(even) { background: #eee }
 
 .main-list-title {
     font-size: 120%;
-    color: #000;
-    font-weight: bold;
 }
 
 .main-list-title a {
-    color: inherit;
 }
 
 .main-list-date {

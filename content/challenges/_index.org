@@ -42,7 +42,8 @@ case it could be useful for someone.
 ** Pentest
 - https://www.hackthebox.eu/
 - https://www.vulnhub.com/
-
+- https://www.cyberseclabs.co.uk/
+  
 ** Reversing
 - https://challenges.re/
 - https://github.com/ytisf/theZoo
@@ -55,4 +56,10 @@ case it could be useful for someone.
 - [[https://portswigger.net/web-security]]
 - [[https://ctfchallenge.co.uk]]
 - https://pentesterlab.com/exercises
-   
+- https://ctf.hacker101.com/   
+- https://xss-game.appspot.com/
+- http://www.dvwa.co.uk/
+- https://google-gruyere.appspot.com/
+- https://xss.pwnfunction.com/
+- https://github.com/tegal1337/0l4bs
+- https://application.security/free-application-security-training

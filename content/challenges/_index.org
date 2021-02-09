@@ -10,7 +10,8 @@ case it could be useful for someone.
 ** AWS Security
 - http://flaws.cloud/
 - http://flaws2.cloud/
-
+- https://github.com/RhinoSecurityLabs/cloudgoat
+  
 ** Crypto
 - https://cryptopals.com/
 - https://cryptohack.org/

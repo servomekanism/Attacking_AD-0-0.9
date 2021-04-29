@@ -115,6 +115,11 @@ img, iframe, video {
   max-width: 100%;
   height: auto;
 }
+
+img {
+    border: 1px solid #ccc;
+}
+
 main {
   hyphens: auto;
   max-width: 650px;

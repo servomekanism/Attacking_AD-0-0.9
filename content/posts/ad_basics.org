@@ -853,9 +853,9 @@ domain.
 When an trust is established, an associated user object is created in each
 domain to store the trust key. The name of the user is the NetBIOS name of the
 other domain, finished in $ (similar to a computer account name). For example,
-in case of the trust between the domains =FOO= and =BAR=, the =FOO= domain would
-store the trust key in the =BAR$= user, and the =BAR= domain would store it in
-the =FOO$= user.
+in case of the trust between the domains FOO and BAR, the FOO domain would
+store the trust key in the BAR$ user, and the BAR domain would store it in
+the FOO$ user.
 
 #+caption: List trust accounts in domain
 #+begin_src powershell

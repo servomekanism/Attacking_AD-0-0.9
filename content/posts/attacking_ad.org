@@ -1791,6 +1791,10 @@ password.
    is used by the =SYSTEM= local account to interact with the domain, but not
    locally, thus, this account has no administrative privileges in the machine.
 
+   However, even if the computer domain account has no administrative
+   privileges, you can use it to create a [[#golden-silver-ticket][Silver ticket]] or perform a
+   [[#s4u-attacks][RBCD attack]] to get access to the machine as an administrator.
+
  - Service users passwords :: In order to run services on behalf of an user, the
    computer needs to store its password. However, the user of the password is not
    stored, but the service name, so you may need to investigate what is the
@@ -6330,9 +6334,9 @@ krbtgt:des-cbc-md5:0e6d79d66b4951cd
 #+end_src
 
 Likewise, it is possible to create a custom ST for a service, known as
-[[https://en.hackndo.com/kerberos-silver-golden-tickets/#silver-ticket][Silver Ticket]], if we get the Kerberos keys of the service user.
-The keys for a service user can be obtained by looking into the [[#lsass-credentials][lsass process]] of
-the domain machines where the user is logged on, by performing [[#kerberoast][Kerberoast]], by
+[[https://en.hackndo.com/kerberos-silver-golden-tickets/#silver-ticket][Silver Ticket]], if we get the Kerberos keys of the service user. The keys for a
+service user can be obtained by looking into the [[#lsass-credentials][lsass process]] of the domain
+machines where the user is logged on, by performing [[#kerberoast][Kerberoast]], by 
 [[#domain-database-dumping][dumping the Active Directory database]], etc.
 
 In both Golden and Silver tickets, it is possible to create the ticket for any
@@ -6370,12 +6374,23 @@ Impacket v0.9.21 - Copyright 2020 SecureAuth Corporation
 [*] Saving ticket in Administrator.ccache  
 #+end_src
 
-One thing to keep in mind is that once the ticket is created, is that this
+Once created, Golden tickets gives you the rights you specify in the ticket,
+allowing you to impersonate any user, even non-existent ones, in the domain and
+accessing to any service in the domain.
+
+One thing to keep in mind is that once the Golden ticket is created, is that this
 [[https://passing-the-hash.blogspot.com/2014/09/pac-validation-20-minute-rule-and.html][must be used in 20 minutes]], otherwise the PAC information will be checked by the
 KDC to verify that it is correct.
 
-Therefore, Silver Tickets can be used to access to one service and Golden
-Tickets can be used to access to any service in the domain... and more.
+On the other hand only allow you to give you rights to access to services of the
+user you have get the password. A case of use for Silver tickets is to access
+to a computer as admin when you have the computer domain account password. You
+has no admin privileges in the machine with its computer domain account, but you
+can use its password to build a Silver ticket for its services and impersonate
+an administrator.
+
+Therefore, Silver Tickets can be used to access to service of one user and
+Golden Tickets can be used to access to any service in the domain... and more.
 
 *** Kerberos Across domains
 :PROPERTIES:

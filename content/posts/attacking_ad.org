@@ -5699,10 +5699,10 @@ Directory the KDC is the Domain Controller, since is the one that has access to
 the domain [[#database][database]] required to authenticate users.
 
 #+BEGIN_QUOTE
-In Kerberos, the TGTs are provided by the Authentication Service (AS) and the
-TGSs by the Ticket-Granting Server. Both services ask to the KDC for the
-Kerberos keys. However, since all these services usually run in the same server,
-for sake of simplicity will be refer them just as KDC.
+In Kerberos, the TGTs are provided by the Authentication Service/Server (AS) and
+the STs by the Ticket-Granting Service/Server (TGS). Both services ask to the
+KDC for the Kerberos keys. However, since all these services usually run in the
+same server, for sake of simplicity will be refer them just as KDC.
 #+END_QUOTE
 
 **** Ticket types
@@ -5714,23 +5714,33 @@ So now that we have the client, the AP, the KDC and the tickets let's see how
 this Kerberos protocol work. For this we should keep in mind that there are two
 types of tickets in Kerberos protocol:
 
-***** TGS
+***** ST
 :PROPERTIES:
-:custom_id: tgs
+:custom_id: st
 :END:
 
-The first type are *TGSs* (Ticket Granting Service), that a client presents to a
-AP/service/principal in order to get access to it. The KDC issues the TGSs for
+The first type are *STs* (Service tickets), that a client presents to a
+AP/service/principal in order to get access to it. The KDC issues the STs for
 clients that request for them.
 
-In Active Directory, a client can get a TGS for any [[#services][service]] registered in the
+#+BEGIN_QUOTE
+In many other publications, the STs are called TGSs. However in [[https://datatracker.ietf.org/doc/html/rfc4120/][rfc4120]] the TGS
+refers to the service that provides the service tickets. I think that probably
+ST are called TGSs due to a misinterpretation of the term Ticket-Granting
+Service, that one could think that refers to tickets that grants service (as I
+did in the past), but refers to the service that grants tickets. Anyway, in case
+other publication or tool is talking about TGSs it is probably referring to the
+tickets that are used to getting access to a service. 
+#+END_QUOTE
+
+In Active Directory, a client can get a ST for any [[#services][service]] registered in the
 domain database, it doesn't matter if the user cannot access to the service
 (Kerberos doesn't handle authorization) or even if the service is not running.
 
-The TGSs are meant to be read by the target principal/service and no one else
+The STs are meant to be read by the target principal/service and no one else
 since they include information about the client that needs to be authenticated
 and the session key to establish a connection with the client. Therefore, the
-*TGSs are encrypted with the key of the target principal*.
+*STs are encrypted with the key of the target principal*.
 
 In case of Active Directory, usually the target principals are services, that
 belongs to user accounts (or computer accounts, that are also users in Active
@@ -5760,7 +5770,7 @@ the target service of the ticket to another service of the same user, the
 [[https://www.secureauth.com/blog/kerberos-delegation-spns-and-more/][ticket will work]] for the new target service.
 
 This technique could be useful in some situations, for example, if you are able
-to get a TGS for an administrator to an MSSQL database in machineA (SPN =
+to get a ST for an administrator to an MSSQL database in machineA (SPN =
 MSSQLSvc\machineA), you could modify the service to point the [[#smb][SMB]] service
 of the same machine (SPN = CIFS\machineA) and get access to the machineA.
 
@@ -5769,8 +5779,8 @@ of the same machine (SPN = CIFS\machineA) and get access to the machineA.
 :custom_id: tgt
 :END:
 
-In order to get a TGS from the KDC, the user is required to present the other
-type of ticket, a *TGT* (Ticket Granting Ticket). The TGT is like a TGS for the
+In order to get a ST from the KDC, the user is required to present the other
+type of ticket, a *TGT* (Ticket Granting Ticket). The TGT is like a ST for the
 KDC (and, in fact, is not more than that).
 
 Actually, following the principle that only the target principal should be
@@ -5797,7 +5807,7 @@ KDC by using its credentials.
 :custom_id: ticket-acquisition
 :END:
      
-Now that we know about TGSs and TGTs, let's examine in more detail [[https://www.tarlogic.com/en/blog/how-kerberos-works/][how Kerberos
+Now that we know about STs and TGTs, let's examine in more detail [[https://www.tarlogic.com/en/blog/how-kerberos-works/][how Kerberos
 works]], which means, [[https://syfuhs.net/a-bit-about-kerberos][how tickets are issued]]:
 
 #+caption: Kerberos process
@@ -5810,14 +5820,14 @@ works]], which means, [[https://syfuhs.net/a-bit-about-kerberos][how tickets are
    | |                       |   | '                                  |
    | | .>-4) TGS-REQ (TGT)-> |   |/  <-7] KERB_VERIFY_PAC_REQUEST-.   |
    | | |                     '---'                                |   |
-   | | | .<-5) TGS-REP (TGS)-<'                                   |   |
+   | | | .<-5) TGS-REP (ST)--<'                                   |   |
    | | | |                                                        |   v
    | v | v                                                        ^   
    ^   ^                                                          .---.
     _____                                                        /   /|
    |     |   <----3) Authentication negotiation (SPNEGO)---->   .---. |
    |_____|                                                      |   | '
-   /:::::/   >-------------------6) AP-REQ (TGS)------------>   |   |/ 
+   /:::::/   >-------------------6) AP-REQ (ST)------------->   |   |/ 
    client                                                       '---'  
              <-------------------9] AP-REP------------------<  AP (service)
 #+end_example
@@ -5835,9 +5845,9 @@ works]], which means, [[https://syfuhs.net/a-bit-about-kerberos][how tickets are
 
 3) Afterwards, the client connects with a service in an AP, and negotiates the
    authentication protocol with SPNEGO. If Kerberos is selected the client needs
-   to get a TGS for the target service.
+   to get a ST for the target service.
 
-4) Therefore, it requests a TGS to the KDC by sending a [[https://tools.ietf.org/html/rfc4120#section-5.4.1][TGS-REQ]] that includes
+4) Therefore, it requests a ST to the KDC by sending a [[https://tools.ietf.org/html/rfc4120#section-5.4.1][TGS-REQ]] that includes
    its TGT and the [[https://en.hackndo.com/service-principal-name-spn/][SPN]] of the target service. It also sends data encrypted with
    the session key, like the client username and a timestamp, in order to verify
    the connection.
@@ -5847,13 +5857,13 @@ works]], which means, [[https://syfuhs.net/a-bit-about-kerberos][how tickets are
    sent by the user to verify that is correct.
 
    After checking that everything is correct, the KDC responds with a [[https://tools.ietf.org/html/rfc4120#section-5.4.2][TGS-REP]]
-   message that contains two encrypted parts: a TGS for the target service,
+   message that contains two encrypted parts: a ST for the target service,
    encrypted with the service user key and client data encrypted with the
    session key. Several information like the service session key is replicated
    in both parts so both the user and service can share it.
 
-6) The client sends the TGS to the service in an [[https://tools.ietf.org/html/rfc4120#section-5.5.1][AP-REQ]] message (inside of the
-   application protocol). The service decrypts the TGS and gets the service
+6) The client sends the ST to the service in an [[https://tools.ietf.org/html/rfc4120#section-5.5.1][AP-REQ]] message (inside of the
+   application protocol). The service decrypts the ST and gets the service
    session key and the PAC. The service will use the security information of the
    PAC about the client to determine if the user have access to its resources.
 
@@ -5867,7 +5877,7 @@ works]], which means, [[https://syfuhs.net/a-bit-about-kerberos][how tickets are
 9) (Optional) Finally, in case of the client requires it, the service must
    authenticate itself by responding to the AP-REQ message with an [[https://tools.ietf.org/html/rfc4120#section-5.5.2][AP-REP]]
    message and using the session key as proof that the service can decrypt the
-   TGS and therefore that is the real service and not a fake one.
+   ST and therefore that is the real service and not a fake one.
 
 From this process, we can notice that Kerberos, unlike NTLM, have messages that
 are not included in other application protocol. Such is the case of AS-REQ and
@@ -5988,23 +5998,23 @@ Impacket v0.9.22 - Copyright 2020 SecureAuth Corporation
      :custom_id: kerberoast
      :END:
 
-In Active Directory, a TGS can be requested by any user for any service that it
+In Active Directory, a ST can be requested by any user for any service that it
 is registered in the domain database through an [[#services][SPN]], regardless of whether the
 service is running or not.
 
-Moreover, the TGS will be partially encrypted with a Kerberos key (derived from
-the password) of the service user. Therefore, if you get a TGS, you can try to crack
-the service user password by trying to decrypt the TGS.
+Moreover, the ST will be partially encrypted with a Kerberos key (derived from
+the password) of the service user. Therefore, if you get a ST, you can try to crack
+the service user password by trying to decrypt the ST.
 
 Most services are registered in machine accounts, which have auto-generated
-passwords of [[https://adsecurity.org/?p=280][120 characters that changes every month]], so crack their TGSs is
+passwords of [[https://adsecurity.org/?p=280][120 characters that changes every month]], so crack their STs is
 unfeasible.
 
 However, occasionally services are assigned to regular user accounts, managed by
-people, that can have weak passwords. The TGSs of that services would allow to
+people, that can have weak passwords. The STs of that services would allow to
 crack them in order to retrieve the user passwords.
 
-The [[https://en.hackndo.com/kerberoasting/][Kerberoast attack]] consist on requests TGSs for those services of regular
+The [[https://en.hackndo.com/kerberoasting/][Kerberoast attack]] consist on requests STs for those services of regular
 user accounts and try to crack them to get the user passwords. Usually, the
 users that have services also have privileges, so these are juicy accounts.
 
@@ -6016,7 +6026,7 @@ following filter:
 (&(samAccountType=805306368)(servicePrincipalName=*))  
 #+end_src
 
-More specifically, to retrieve the TGSs to crack you can use the
+More specifically, to retrieve the STs to crack you can use the
 [[https://github.com/SecureAuthCorp/impacket/blob/master/examples/GetUserSPNs.py][impacket GetUserSPNs.py]] script, the [[https://github.com/GhostPack/Rubeus#kerberoast][Rubeus kerberoast]] command, or the
 [[https://github.com/EmpireProject/Empire/blob/master/data/module_source/credentials/Invoke-Kerberoast.ps1][Invoke-Kerberoast.ps1]] script.
 
@@ -6034,8 +6044,8 @@ root@debian10:~# cat kerberoast-hashes.txt
 $krb5tgs$23$*leia$CONTOSO.LOCAL$HTTP/ws01-10*$65ca3e856acd6d9438c05cb6c283dcb5$ab86cafcf1dee23d2466973679fc315e9fef3fa2ddcae82d844b31e1651ed983a4d4ff0846148ddf63f80129cd2cb663c7daed26169513ec398464a9796ae7f84e593829f16654279d5b3fa4286eb1e6467a3d569bc88d7150f30cf2dc83ff4185f0a7590b9e5a05ba63cb9dbb710df295c4356cc57ac53cc2d0e0974aeb0e2ae930e6311c5268c457d5da726393e93e9b0d1c8d745ad7b6d63bf36eb11c7f171da87bee9d4ac69b2a8f70157ce402af52ffd35498e3cade179af266be08e5fcf3aee6a0dae26afb6470ba2d25c922868b9a0ca4c80eece585782ea0ea96b6e4f3ee56dc1808990ecf456c021d04ec74edef98b3235553176e55d56a7f3ee9c76f2f22ab7e3d30fabc658a516f8ef03710032aaae36a917cc7e677857c09df3035bd6034aa192c620c9cb6452533225e9606ac06cf0a6a5865468599cd73907b574cef0c081df388ea50176288a444692db96026d2f33f3ba4e8597d11557443e262bee86ca6485272addcf03056a93b6e7e60c02a152640f320e7094f5897fbf1cee83ab45a6f62fc554ec1c67878d9aa7974e43e2f1bdff2b0c197e3ccbd9daf84c1a37bc453aec6a0fa502c05ae530e14a5d1f7bceb5cb1393460a0f8eec8b058ede6ceda637a3c248fcd1e1fe57ae2f2d343c5e749cf9897023b910a3e2b13025584b2a9d4e73e9809ba25231b3fd3616476e51406993d354c9015a95888957e3d3d69784dc8b5c12b11e225756a41485c57467aa1c4041e6c7879f4efe65710fd760c5c3472f1ebefefa8a0f5099ccff5ef84162b1ddd42d795d82a8ac09f811e692c5aec13ee5f9e6335a5501f50412cee10da5a1a444cc5a1f9885885088b6f01d36dc8684101fde2a3c4a40ffe424ca8b3512455f5662794c64fed3b5183aaa9a338f18a33da8e41ac8a4e5598925cfe49db7362f107e018694922b26e20d5e3f125ff151f4299919fa082ad6f0d15643a69584a41b06ba46cca25c57ac51e7430c9166cdcc34428e108fba970d0c550694b431179d867f6b6dfe91e893be37bcf8407e9965921cbcf7b17a7f575ec64e4c7fb8bde0d4994b382cc58b44fc964528ac9aae46b5a84109f3f3ef23a71cca40355d71c95aa191cc11fbd66613f05f58eb74b07530b3deef934811da775c00d6a4217508501b14958b5241a8be72d20f891d5122936ebee8c636a7c746a3bae78d435c11efa4c8693d87d9d7f7c7369ea620d886affea1e1cfbcb216d9f44ad42fedbc81f71722eccc6b54b00c2e80902a1fe49d06ca099f8db51aa1f2ad9ad761208f38803d0c842bbbcaf0c08259904eebdd4  
 #+end_src
 
-Once you have the TGSs, you can try to crack them with [[https://hashcat.net/hashcat/][hashcat]]. In order to
-crack them easily, the TGSs should be requested encrypted with RC4, however
+Once you have the STs, you can try to crack them with [[https://hashcat.net/hashcat/][hashcat]]. In order to
+crack them easily, the STs should be requested encrypted with RC4, however
 this could be detected as anormal traffic (by solutions like [[https://docs.microsoft.com/en-gb/advanced-threat-analytics/what-is-ata][Microsoft ATA]])
 since most of the requests require the AES256 encryption.
 
@@ -6047,7 +6057,7 @@ Therefore, you can request ticket for a given user, that will be encrypted with
 the user key. However, it is necessary that the target user has some service
 registered in order to retrieve a ticket for it.
 
-The TGS obtained for the user as target principal name is also encrypted with
+The ST obtained for the user as target principal name is also encrypted with
 the user key so it can be used in Kerberoasting. This also could be useful to
 brute-force kerberoasteable users in case you are not able to enumerate them
 via LDAP, since the principal name of a user without SPNs cannot be resolved. 
@@ -6058,7 +6068,7 @@ also be used with [[https://github.com/GhostPack/Rubeus#kerberoast][Rubeus kerbe
 
 Moreover, if you have the [[https://docs.microsoft.com/en-gb/windows/win32/adschema/r-validated-spn][Validated-SPN]] permsission over an user account,
 you can add SPNs to that account, making it Kerberoasteable. This way you could
-request a TGS for that account service and try to crack it. By default, accounts
+request a ST for that account service and try to crack it. By default, accounts
 do not have the Validated-SPN permissions over themselves.
 
 **** ASREProast
@@ -6205,9 +6215,9 @@ aes256:ecce3d24b29c7f044163ab4d9411c25b5698337318e98bf2903bbb7f6d76197e
 
 The Pass the Ticket technique consists on steal a ticket and the associated
 session key and use them to impersonate the user in order to access to resources
-or services. Both TGTs and TGSs can be used, but TGTs are preferred since they
-allow to access to any service (by using it to request a TGS) on behalf of the
-user, whereas the TGSs are limited to only one service (or more if the
+or services. Both TGTs and STs can be used, but TGTs are preferred since they
+allow to access to any service (by using it to request a ST) on behalf of the
+user, whereas the STs are limited to only one service (or more if the
 [[https://www.secureauth.com/blog/kerberos-delegation-spns-and-more/][SPN is modified]] to another service of the same user).
 
 In Windows, the tickets can be found in the lsass process memory, and can be
@@ -6319,7 +6329,7 @@ krbtgt:des-cbc-md5:0e6d79d66b4951cd
 [*] Cleaning up...
 #+end_src
 
-Likewise, it is possible to create a custom TGS for a service, known as
+Likewise, it is possible to create a custom ST for a service, known as
 [[https://en.hackndo.com/kerberos-silver-golden-tickets/#silver-ticket][Silver Ticket]], if we get the Kerberos keys of the service user.
 The keys for a service user can be obtained by looking into the [[#lsass-credentials][lsass process]] of
 the domain machines where the user is logged on, by performing [[#kerberoast][Kerberoast]], by
@@ -6381,11 +6391,11 @@ into trusting domains (using incoming or bidirectionals [[#trusts][trusts]]). Th
 accesing external domain resources also requires authentication, that can be
 provided by Kerberos.
 
-However, a KDC (DC) only can issue TGSs for the services in its domain, so, how
-does Kerberos works across domains? Well, it is necessary to ask for a TGS to
+However, a KDC (DC) only can issue STs for the services in its domain, so, how
+does Kerberos works across domains? Well, it is necessary to ask for a ST to
 the external domain DC server, and for that we require a TGT for that
 server. The TGT for an external KDC, known as inter-realm TGT, is issued by
-our KDC when we ask for a TGS for a service in another domain. The steps are the
+our KDC when we ask for a ST for a service in another domain. The steps are the
 following:
 
 #+caption: Kerberos across domains
@@ -6397,14 +6407,14 @@ following:
   |   | '                       |    + TGT client > bar.com      |   | '
   |   |/                        |                                |   |/ 
   '---'                         |   .--5) TGS-REP--------------< '---'
-  v  ^                          |   | + TGS client > HTTP/srvbar
+  v  ^                          |   | + ST client > HTTP/srvbar
   |  |                          |   |
   |  |                          ^   v                                   .---.
   |  '-2) TGS-REQ (TGT foo)--<  _____                                  /   /|
   |   + SPN: HTTP\srvbar       |     | <----------1) SPNEGO---------> .---. |
   |   + TGT client > foo.com   |_____|                                |   | '
   |                            /:::::/ >----6) AP-REQ---------------> |   |/
-  '--3) TGS-REP--------------> client     + TGS client > HTTP/srvbar  '---'  
+  '--3) TGS-REP--------------> client     + ST client > HTTP/srvbar   '---'  
     + TGT client > bar.com    (foo.com)                               srvbar
                                                                     (bar.com)
 #+end_example
@@ -6413,7 +6423,7 @@ following:
    authentication with the desired service, in this case HTTP\srvbar (a web
    server in the server srvbar) from the =bar.domain=.
 
-2) The client asks for a TGS, using its TGT of =foo.com=, for HTTP\srvbar to its
+2) The client asks for a ST, using its TGT of =foo.com=, for HTTP\srvbar to its
    KDC, by sending a TGS-REQ message.
 
 3) The KDC identifies that this service is in the trusting domain =bar.com=.
@@ -6423,15 +6433,15 @@ following:
    message. The PAC included in =bar.com= TGT [[https://dirkjanm.io/active-directory-forest-trusts-part-one-how-does-sid-filtering-work/#from-a-to-b-whats-in-a-pac][is a copy]] of the =foo.com= TGT
    PAC.
 
-4) The client uses the =bar.com= TGT to ask for a HTTP\srvbar TGS to the
+4) The client uses the =bar.com= TGT to ask for a HTTP\srvbar ST to the
    =bar.com= KDC, by sending a TGS-REQ message.
 
 5) The =bar.com= KDC checks the ticket by decrypting it with the inter-realm trust
-   key. Then it creates a TGS for HTTP\srvbar for the client. When the new TGS
+   key. Then it creates a ST for HTTP\srvbar for the client. When the new ST
    is created, the PAC from the TGT is copied and [[https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-pac/55fc19f2-55ba-4251-8a6a-103dd7c66280][filtered]] if necessary. Usually,
    extra SIDs that are not part of the forest of the trusted domain [[https://dirkjanm.io/active-directory-forest-trusts-part-one-how-does-sid-filtering-work/#golden-tickets-and-sid-filtering][are removed]].
 
-6) Finally, the client uses the TGS to authenticate itself against the
+6) Finally, the client uses the ST to authenticate itself against the
    HTTP\srvbar service.
 
 One thing that is curious is that, normally, the inter-realm TGTs are encrypted
@@ -6461,7 +6471,7 @@ SIDs are added to the PAC extra SIDs field. This way, the old domain can review
 these SIDs and to grant the user their old privileges, allowing it to access the
 old domain resources.
 
-However, the extra SIDs could be omitted (not copied into TGS PAC) based on the
+However, the extra SIDs could be omitted (not copied into ST PAC) based on the
 [[https://dirkjanm.io/active-directory-forest-trusts-part-one-how-does-sid-filtering-work/][SID filtering]] policy. Generally, the *domains allows the SIDs from other domains
 in the forest* (by default), but *discard extra SIDs from external forests*
 following the [[https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-pac/55fc19f2-55ba-4251-8a6a-103dd7c66280][ForestSpecific]] rule, since the forest is the security boundary of
@@ -6490,8 +6500,8 @@ However, as we said before, the SID History is copied to the PAC of the TGT, so
 if we can craft a Golden Ticket, we can inject the History SIDs we want directly
 into the PAC extra SIDs attribute. Then, when we use this "Golder" ticket, its
 PAC is copied into the inter-realm TGT. Afterwards, when using this inter-realm
-TGT to get a TGS for a service in the external domain, if this domain is in the
-same forest, the privileged SIDs could be copied into the TGS PAC, thus granting
+TGT to get a ST for a service in the external domain, if this domain is in the
+same forest, the privileged SIDs could be copied into the ST PAC, thus granting
 us the privileges that we have initially injected in the Golder ticket.
 
 An interesting SID to inject is the one of the "[[https://adsecurity.org/?p=3658][Enterprise Admins]]", this group
@@ -6595,21 +6605,21 @@ over the domain, or even in other domains. However, sometimes the accessed
 
 For example, a web server where the user is logged (with Kerberos) needs to
 perform some activities in a database on behalf the user. However, when the user
-authenticates against the web server, this only receives user TGS for itself, but
-to impersonate the user, it also requires a user TGS for the database service.
+authenticates against the web server, this only receives user ST for itself, but
+to impersonate the user, it also requires a user ST for the database service.
 
 To handle this situation, Kerberos Delegation can be used. This feature provides
-mechanisms to allow a service to get a TGS for a third service on behalf of the
+mechanisms to allow a service to get a ST for a third service on behalf of the
 client.
 
 To perform Kerberos Delegation in Active Directory, there are two approaches: 
 
-- Unconstrained Delegation :: Implies to send the user TGT inside the TGS to the
+- Unconstrained Delegation :: Implies to send the user TGT inside the ST to the
      service, allowing it to totally impersonate the client against the KDC,
      by using the client TGT.
 
 - Constrained Delegation :: Provides mechanisms, the [[https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-sfu/3bff5864-8135-400e-bdd9-33b552051d94][Service for User]] (S4U)
-     extensions, that allow a service to request a TGS on behalf of an user
+     extensions, that allow a service to request a ST on behalf of an user
      without need to use the client TGT, and only for a certain allowed
      services.
 
@@ -6650,10 +6660,10 @@ the [[https://docs.microsoft.com/en-us/powershell/module/addsadministration/?vie
 
 In [[https://adsecurity.org/?p=1667][Kerberos Unconstrained Delegation]] the service can impersonate the client user
 since this sends its own TGT to the service. Then, the service can use the user
-TGT (without any constrain) to ask for new TGSs for other services in behalf of
+TGT (without any constrain) to ask for new STs for other services in behalf of
 the client.
 
-The KDC set the [[https://tools.ietf.org/html/rfc4120#section-2.8][OK-AS-DELEGATE]] flag in the TGS for any service whose owner, the
+The KDC set the [[https://tools.ietf.org/html/rfc4120#section-2.8][OK-AS-DELEGATE]] flag in the ST for any service whose owner, the
 service user, has the [[https://docs.microsoft.com/en-us/troubleshoot/windows-server/identity/useraccountcontrol-manipulate-account-properties][UserAccountControl]] TRUSTED_FOR_DELEGATION flag set. By
 checking the [[https://tools.ietf.org/html/rfc4120#section-2.8][OK-AS-DELEGATE]] and the [[https://tools.ietf.org/html/rfc4120#section-2.6][FORWARDABLE]] flags a client knows if it
 should ask for a TGT to be sent to the target service in order to allow
@@ -6661,7 +6671,7 @@ unconstrained delegation.
 
 In the case of clients that are members of [[https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-R2-and-2012/dn466518(v=ws.11)][Protected Users]] group or has the
 [[https://docs.microsoft.com/en-us/troubleshoot/windows-server/identity/useraccountcontrol-manipulate-account-properties][UserAccountControl]] NOT_DELEGATED flag set, then the [[https://tools.ietf.org/html/rfc4120#section-2.6][FORWARDABLE]] flag is unset
-in the TGS.
+in the ST.
 
 Moreover, to set the TRUSTED_FOR_DELEGATION flag in a user account, the
 [[https://www.harmj0y.net/blog/activedirectory/the-most-dangerous-user-right-you-probably-have-never-heard-of/][SeEnableDelegationPrivilege]] is required.
@@ -6676,7 +6686,7 @@ Let's view an example:
  |         + TGT client             .---. |     + TGT client - FORWARDED    |
  |                                  |   | '                                 |
  |  .--------2) TGS-REP-----------< |   |/ >--------7) TGS-REP-----------.  |
- |  |  + TGS client > HTTP/websrv   '---'  + TGS client > MSSQLSvc/dbsrv |  |
+ |  |  + ST client > HTTP/websrv    '---'   + ST client > MSSQLSvc/dbsrv |  |
  |  |    - OK-AS-DELEGATE           ^   v                                |  |
  |  |    - FORWARDABLE              |   |                                |  |
  ^  v                               |   |                                |  |
@@ -6691,25 +6701,25 @@ Let's view an example:
    |                                                                   /   /|
    |                                                                  .---. |
    '----------------------------5) AP-REQ---------------------------> |   | '
-                          + TGS client > HTTP\websrv                  |   |/
+                          + ST client > HTTP\websrv                   |   |/
                           + TGT client - FORWARDED                    '---'
                                                                       websrv
                                                                        v
                                   .---.                                |
                                  /   /|                                |
                                 .---. | <--------8) AP-REQ-------------'
-                                |    | '   + TGS client > MSSQLSvc\dbsrv
-                                |    |/
+                                |   | '   + ST client > MSSQLSvc\dbsrv
+                                |   |/
                                 '---'
                                 dbsrv
 #+end_example
 
-1) The client request a TGS for the service HTTP\websrv (a web service in the
+1) The client request a ST for the service HTTP\websrv (a web service in the
    websrv server), by using its TGT. The HTTP\websrv service belongs to the user
    websrv$ (remember that usernames of [[#computer-accounts][computer accounts]] end with =$=).
 
 2) The KDC checks that the [[https://docs.microsoft.com/en-us/troubleshoot/windows-server/identity/useraccountcontrol-manipulate-account-properties][TRUSTED_FOR_DELEGATION]] flag is set for
-   websrv$. Hence, the KDC returns to the client a TGS for HTTP\websrv that
+   websrv$. Hence, the KDC returns to the client a ST for HTTP\websrv that
    has the [[https://tools.ietf.org/html/rfc4120#section-2.8][OK-AS-DELEGATE]] flag (and [[https://tools.ietf.org/html/rfc4120#section-2.6][FORWARDABLE]]). 
 
 3) The client checks the [[https://tools.ietf.org/html/rfc4120#section-2.8][OK-AS-DELEGATE]] flag, that indicates that the service
@@ -6718,20 +6728,20 @@ Let's view an example:
 
 4) The KDC returns a TGT with the FORWARDED flag set.
    
-5) The client sends the TGS with the FORWARDED TGT included to websrv to get
+5) The client sends the ST with the FORWARDED TGT included to websrv to get
    access to the HTTP\websrv service.
 
 6) Ocasionally, the HTTP\websrv needs to impersonate the client to access to the
-   database service located in dbsrv. So the web service requests a TGS for
+   database service located in dbsrv. So the web service requests a ST for
    MSSQLSvc\dbsrv on behalf of the client, by using the received client TGT.
 
-7) The KDC then returns a TGS for the client to access the MSSQLSvc\dbsrv
+7) The KDC then returns a ST for the client to access the MSSQLSvc\dbsrv
    service.
 
-8) Finally, the HTTP\websrv service uses the TGS to access to MSSQLSvc\dbsrv by
+8) Finally, the HTTP\websrv service uses the ST to access to MSSQLSvc\dbsrv by
    impersonating the client.
 
-Probably the most important fact to have in mind is that a any TGS that will be
+Probably the most important fact to have in mind is that a any ST that will be
 send to HTTP\websrv will contain a TGT from the client. Therefore, if someone
 compromises the websrv server, it will be able to get all those TGTs and use
 them to impersonate any of the clients through a [[#pass-the-ticket][Pass the Ticket]] attack.
@@ -6741,10 +6751,10 @@ the [[https://github.com/gentilkiwi/mimikatz/wiki/module-~-sekurlsa#tickets][mim
 Other approach is to dump the lsass process with tools like [[https://docs.microsoft.com/en-us/sysinternals/downloads/procdump][procdump]], [[https://lolbas-project.github.io/#/dump][sqldumper
 or others]], and extract the tickets offline with mimikatz or [[https://github.com/skelsec/pypykatz][pypykatz]].
 
-But remember that the TGTs are included in all TGSs for the services of the
+But remember that the TGTs are included in all STs for the services of the
 account that has the [[https://docs.microsoft.com/en-us/troubleshoot/windows-server/identity/useraccountcontrol-manipulate-account-properties][UserAccountControl]] TRUSTED_FOR_DELEGATION flag set.
 Therefore in the previous example, where websrv$ computer account was the owner
-of the HTTP\websrv service, any TGS requested for any other service of websrv$,
+of the HTTP\websrv service, any ST requested for any other service of websrv$,
 like for example, CIFS\websrv (to access [[#shares][SMB shares]]), will also contain the
 client TGT.
 
@@ -6827,19 +6837,19 @@ The steps are the following:
    |                             .---. |   + TGT foosrv$ > bar.com         |
    |                             |   | '                                   |
    | .------2) TGS-REP---------< |   |/  >-------9) TGS-REP--------------. |
-   | | + TGT barsrv$ > foo.com   '---'    + TGS foosrv$ > cifs/udbarsrv  | |
-   | |                           KDC        - OK-AS-DELEGATE             | |
+   | | + TGT barsrv$ > foo.com   '---'     + ST foosrv$ > cifs/udbarsrv  | |
+   | |                           KDC         - OK-AS-DELEGATE            | |
    | |                          bar.com                                  | |
    ^ v                                                                   | |
    .---.                                                                 | |
   /   /|  RpcRemoteFindFirstPrinterChangeNotification -> udbarsrv        | |
  .---. | ---------5) AP-REQ -------------------------------------------. | |
- |   | '      + TGS barsrv$ > cifs/foosrv                              | | |
+ |   | '      + ST barsrv$ > cifs/foosrv                               | | |
  |   |/                                                                | | |
  '---'                                                                 | | |
  barsrv      .---.                                                     | | |
  ^ v        /   /| <-------12) AP-REQ--------------------.             | | |
- | |       .---. |     + TGS foosrv$ > cifs/udbarsrv     |             | | |
+ | |       .---. |     + ST foosrv$ > cifs/udbarsrv      |             | | |
  | |       |   | '     + TGT foosrv$                     |             | | |
  | |       |   |/        - FORWARDED                     |             v v ^
  | |       '---'                                         '-----------< .---.
@@ -6855,28 +6865,28 @@ The steps are the following:
  |      + TGT barsrv$ > foo.com  |   | '  + SPN: krbtgt/foo.com         |
  |                               |   |/                                 |
  '--------4) TGS-REP-----------< '---'  >-----11) TGS-REP---------------'
-   + TGS barsrv$ > cifs/foosrv    KDC       + TGT foosrv$ 
+   + ST barsrv$ > cifs/foosrv    KDC       + TGT foosrv$ 
                                  foo.com      - FORWARDED 
 #+end_example
 
 1) barsrv (of the bar.com domain) sends a TGS-REQ to the =bar.com= KDC asking for
-   a TGS for the SMB service (cifs) of foosrv (since the printer bug uses
+   a ST for the SMB service (cifs) of foosrv (since the printer bug uses
    [[#rpc-over-smb][RPC over SMB]]).
 
 2) The bar.com KDC checks that the requested service is in the trusting domain
    =foo.com= and issues a TGT for barsrv$ for that domain.
 
-3) Then barsrv uses its TGT for =foo.com= to ask to the =foo.com= KDC for a TGS
+3) Then barsrv uses its TGT for =foo.com= to ask to the =foo.com= KDC for a ST
    for cifs/foosrv service.
 
-4) The =foo.com= KDC returns then a TGS for barsrv$ for cifs/foosrv.
+4) The =foo.com= KDC returns then a ST for barsrv$ for cifs/foosrv.
 
 5) Then barsrv authenticates against foosrv and performs the printer bug call,
    [[https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rprn/b8b414d9-f1cd-4191-bb6b-87d09ab2fd83][RpcRemoteFindFirstPrinterChangeNotification]], indicating to foosrv (of
    =foo.com= domain) to connect to udbarsrv server (of =bar.com= domain) by
    using [[#rpc-over-smb][SMB]]. 
 
-6) foosrv asks the =foo.com= KDC for a TGS for the SMB service of udbarsrv
+6) foosrv asks the =foo.com= KDC for a ST for the SMB service of udbarsrv
    (cifs/udbarsrv).
 
 7) The =foo.com= KDC checks that the requested service is in the trusting domain
@@ -6884,10 +6894,10 @@ The steps are the following:
    OK-AS-DELEGATE flag, that indicates that TGT delegation is enabled for
    =bar.com= from =foo.com=.
 
-8) Next, foosrv uses the new TGT to ask the =bar.com= KDC for a TGS for
+8) Next, foosrv uses the new TGT to ask the =bar.com= KDC for a ST for
    cifs/udbarsrv.
 
-9) The =bar.com= KDC returns a TGS for foosrv$ for cifs/udbarsrv. This TGS has
+9) The =bar.com= KDC returns a ST for foosrv$ for cifs/udbarsrv. This ST has
    the OK-AS-DELEGATE flag set, that indicates that the services uses
    unconstrained delegation.
 
@@ -6935,15 +6945,15 @@ delegation.
 :END:
 
 The S4U2proxy (Service for User to Proxy) extension allows a service to ask a
-TGS for another service on behalf of the client by using the client TGS that was
+ST for another service on behalf of the client by using the client ST that was
 sent to the service, instead of client TGT.
 
 Moreover, unlike unconstrained delegation, a service can only ask for an
-impersonation TGS for certain whitelisted services. The allowed services are
+impersonation ST for certain whitelisted services. The allowed services are
 defined by the following attributes:
 
 - The [[https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-ada2/86261ca1-154c-41fb-8e5f-c6446e77daaa][msDS-AllowedToDelegateTo]] attribute of the service user account contains a
-  list of SPNs (services) for which it (and its services) can ask a TGS on
+  list of SPNs (services) for which it (and its services) can ask a ST on
   behalf of the client. This *list of services* is used in the classic
   Constrained Delegation. In order to modify msDS-AllowedToDelegateTo, the
   [[https://www.harmj0y.net/blog/activedirectory/the-most-dangerous-user-right-you-probably-have-never-heard-of/][SeEnableDelegationPrivilege]] is required.
@@ -6987,7 +6997,7 @@ msDS-AllowedToDelegateTo                .---.
 Moreover, since it is possible to [[https://www.secureauth.com/blog/kerberos-delegation-spns-and-more/][change the target service]] of a ticket, Anakin
 could ask for a ticket for "HTTP/webserver" on behalf of the client and change
 the target service to any service of the owner of "HTTP/webserver", since all
-these services TGSs will be encrypted with the same [[#kerberos-keys][Kerberos key]].
+these services STs will be encrypted with the same [[#kerberos-keys][Kerberos key]].
 
 For example, if the user of "HTTP/webserver" is webserver$ (the user account of
 the webserver computer), then Anakin could ask a ticket for "HTTP/webserver" on
@@ -7039,37 +7049,37 @@ any service of the Han user.
 
 
 Additionally, the KDC also checks another parameters to determine the result of
-a S4U2proxy request. It also takes into account if the client TGS is FORWARDABLE
+a S4U2proxy request. It also takes into account if the client ST is FORWARDABLE
 and if the [[#kerberos-anti-delegation-measures][client is protected]] against delegation. You can check the rules in the
 [[https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-sfu/c6f6f8b3-1209-487b-881d-d0908a413bb7][MS-SFU specification]]. As a summary, the rules are the following:
 
-1) If not valid [[#pass-the-ticket][Ticket Signature in PAC]] of client TGS => return error
+1) If not valid [[#pass-the-ticket][Ticket Signature in PAC]] of client ST => return error
   KRB-AP-ERR-MODIFIED.
 
-2) If client TGS is not FORWARDABLE and client is protected => return error
+2) If client ST is not FORWARDABLE and client is protected => return error
   KRB-ERR-BADOPTION - STATUS-ACCOUNT-RESTRICTED.
 
-3) If client TGS is not FORWARDABLE and target_service in ms-AllowedToDelegateTo
+3) If client ST is not FORWARDABLE and target_service in ms-AllowedToDelegateTo
    => return error KRB-ERR-BADOPTION - STATUS-ACCOUNT-RESTRICTED. (This one was
   discovered by experimenting)
 
-4) If client TGS FORWARDABLE and target_service in ms-AllowedToDelegateTo =>
-  return S4U2proxy TGS.
+4) If client ST FORWARDABLE and target_service in ms-AllowedToDelegateTo =>
+  return S4U2proxy ST.
 
 5) If service user in target_service user
-  msDS-AllowedToActOnBehalfOfOtherIdentity => return S4U2proxy TGS.
+  msDS-AllowedToActOnBehalfOfOtherIdentity => return S4U2proxy ST.
 
 
-One curious thing to note is that it is possible to retrieve a [[https://shenaniganslabs.io/2019/01/28/Wagging-the-Dog.html#serendipity][S4U2proxy TGS
-from a non FORWARDABLE client TGS]] by using Resource Based Constrained
+One curious thing to note is that it is possible to retrieve a [[https://shenaniganslabs.io/2019/01/28/Wagging-the-Dog.html#serendipity][S4U2proxy ST
+from a non FORWARDABLE client ST]] by using Resource Based Constrained
 Delegation (msDS-AllowedToActOnBehalfOfOtherIdentity). Except in the case that
 the target service is also listed in ms-AllowedToDelegateTo (rule 3), where an
 error will be returned.
 
 Besides, prior to [[#pass-the-ticket][PAC Ticket Signature]] check implementation, it was possible for
-a service user to [[https://blog.netspi.com/cve-2020-17049-kerberos-bronze-bit-theory/][modify the client TGS]] (since it was encrypted with its
+a service user to [[https://blog.netspi.com/cve-2020-17049-kerberos-bronze-bit-theory/][modify the client ST]] (since it was encrypted with its
 Kerberos key) and make it FORWARDABLE. However, Microsoft introduced this Ticket
-Signature in the PAC (signed by the KDC key) to verify that TGS was not
+Signature in the PAC (signed by the KDC key) to verify that ST was not
 tampered.
 
 Moreover, you can notice that [[https://shenaniganslabs.io/2019/01/28/Wagging-the-Dog.html#a-forwardable-result][S4U2proxy returns forwardable tickets]]. (Even if the
@@ -7084,36 +7094,36 @@ Let's now view an example of the S4U2proxy process:
                 .---. <-----2) TGS-REQ--------------------.
                /   /|    + SPN: MSSQLSvc/dbsrv            |
               .---. |    + TGT websrv$                    |
-              |   | '    + TGS client > http/websrv       |
+              |   | '    + ST client > http/websrv        |
               |   |/                                      |
               '---'  >-----3) TGS-REP------------------.  |
-                       + TGS client > MSSQLSvc/dbsrv   v  ^
+                       + ST client > MSSQLSvc/dbsrv    v  ^
                                                       .---.
   ____                                               /   /|
  |    | >-----------1) AP-REQ---------------------> .---. |
- |____|     + TGS client > http/websrv              |   | '
+ |____|     + ST client > http/websrv               |   | '
  /::::/                                             |   |/ 
  client                                             '---'  
                                                     websrv
                 .---.                                  v
                /   /|                                  |
               .---. |<-----4) AP-REQ-------------------'
-              |   | '   + TGS client > MSSQLSvc/dbsrv
+              |   | '   + ST client > MSSQLSvc/dbsrv
               |   |/ 
               '---'  
               dbsrv
 #+end_example
 
 1) The client authenticates against the web server service (http/websrv) by
-   sending a TGS.
+   sending a ST.
 
 2) Later, when the web server (http/websrv) needs to access to the database
-   service (MSSQLSvc/dbsrv) on behalf of the client, it asks for a TGS for
-   MSSQLSvc/dbsrv by using the client TGS, and its own TGT.
+   service (MSSQLSvc/dbsrv) on behalf of the client, it asks for a ST for
+   MSSQLSvc/dbsrv by using the client ST, and its own TGT.
 
 3) The KDC checks that the service user websrv$ is allowed to ask delegation
    tickets for MSSQLSvc/dbsrv by following the previous discussed rules and
-   returns the client TGS for MSSQLSvc/dbsrv. To sum up, usually one of these
+   returns the client ST for MSSQLSvc/dbsrv. To sum up, usually one of these
    conditions should be meet:
 
    1) MSSQLSvc/dbsrv is included in the msDS-AllowedToDelegateTo attribute of
@@ -7124,7 +7134,7 @@ Let's now view an example of the S4U2proxy process:
       attribute of dbsrv$ (the service user of the MSSQLSvc/dbsrv service). This
       is Resource Based Constrained Delegation.
 
-4) The web service uses the recently acquired TGS to authenticate itself against
+4) The web service uses the recently acquired ST to authenticate itself against
    the database by impersonating the client.
 
 
@@ -7138,7 +7148,7 @@ case [[https://docs.microsoft.com/en-us/windows-server/security/kerberos/kerbero
        .--------------1) TGS-REQ-------------------> .---.
        |          + SPN: MSSQLSvc/dbsrv.bar.com     /   /|
        |          + TGT websrv$ > foo.com          .---. |
-       |          + TGS client > http/websrv       |   | '
+       |          + ST client > http/websrv        |   | '
        |                                           |   |/ 
        |   .----2) TGS-REP-----------------------< '---'  
        |   |  + TGT websrv$ (client) > bar.com     ^   v
@@ -7153,7 +7163,7 @@ case [[https://docs.microsoft.com/en-us/windows-server/security/kerberos/kerbero
     (foo.com)                                                   /   /|
       ^  v  v                                                  .---. |
       |  |  '-------------7) AP-REQ--------------------------> |   | '
-      |  |          + TGS client > MSSQLSvc/dbsrv.bar.com      |   |/ 
+      |  |          + ST client > MSSQLSvc/dbsrv.bar.com       |   |/ 
       |  |                                                     '---'  
       |  '-------5) TGS-REQ-----------------------> .---.      dbsrv
       |      + SPN: MSSQLSvc/dbsrv.bar.com         /   /|    (bar.com)
@@ -7161,15 +7171,15 @@ case [[https://docs.microsoft.com/en-us/windows-server/security/kerberos/kerbero
       |      + TGT websrv$ (client) > bar.com     |   | '
       |                                           |   |/ 
       '---6) TGS-REP----------------------------< '---'  
-        + TGS client > MSSQLSvc/dbsrv.bar.com   KDC bar.com
+        + ST client > MSSQLSvc/dbsrv.bar.com   KDC bar.com
 
 #+end_example
 
-0) We assume that client already sends its TGS to an websrv service. Then websrv
+0) We assume that client already sends its ST to an websrv service. Then websrv
    needs to access to the database service MSSQLSvc/dbsrv on behalf of the user.
 
-1) websrv ask for a TGS for MSSQLSvc/dbsrv on behalf of the client, by including
-   its own TGS.
+1) websrv ask for a ST for MSSQLSvc/dbsrv on behalf of the client, by including
+   its own ST.
 
 2) The KDC examines the request and determines that the asked service is in
    =bar.com= so it returns an special inter-realm TGT for asking S4U2proxy to
@@ -7181,14 +7191,14 @@ case [[https://docs.microsoft.com/en-us/windows-server/security/kerberos/kerbero
 
 4) The KDC returns a inter-realm TGT to =bar.com= for websrv$.
 
-5) Then websrv$ uses these inter-realm TGTs to ask the =bar.com= KDC for a TGS for
+5) Then websrv$ uses these inter-realm TGTs to ask the =bar.com= KDC for a ST for
    MSSQLSvc/dbsrv in behalf of the client. 
 
 6) The KDC examines the requests and determines that websrv$ is allowed to
-   delegate to MSSQLSvc/dbsrv service (using RBCD), so it issues a TGS for
+   delegate to MSSQLSvc/dbsrv service (using RBCD), so it issues a ST for
    MSSQLSvc/dbsrv.
 
-7) websrv uses this new TGS to access MSSQLSvc/dbsrv service on behalf of the
+7) websrv uses this new ST to access MSSQLSvc/dbsrv service on behalf of the
    client.
 
 ***** S4U2self
@@ -7213,18 +7223,18 @@ when a S4U2self request is received:
 1) If service user does not have any services => return error
    KDC-ERR-S-PRINCIPAL-UNKNOWN.
 
-2) If client is [[#kerberos-anti-delegation-measures][protected against delegation]] => return non-FORWARDABLE TGS.
+2) If client is [[#kerberos-anti-delegation-measures][protected against delegation]] => return non-FORWARDABLE ST.
 
 3) If service user TRUSTED_TO_AUTH_FOR_DELEGATION flag is set => return
-   FORWARDABLE TGS.
+   FORWARDABLE ST.
 
 4) If service user TRUSTED_TO_AUTH_FOR_DELEGATION flag is not set and service
-   user has services in ms-AllowedToDelegateTo => return non-FORWARDABLE TGS.
-   (This TGS can still be
+   user has services in ms-AllowedToDelegateTo => return non-FORWARDABLE ST.
+   (This ST can still be
     [[https://shenaniganslabs.io/2019/01/28/Wagging-the-Dog.html#serendipity][used for S4U2proxy with Resource Based Constrained Delegation]]) 
 
 5) If service user TRUSTED_TO_AUTH_FOR_DELEGATION flag is not set and service
-   user ms-AllowedToDelegateTo is empty => return FORWARDABLE TGS.
+   user ms-AllowedToDelegateTo is empty => return FORWARDABLE ST.
 
 Let's view an example:
 
@@ -7237,19 +7247,19 @@ Let's view an example:
  |    | >-1) SPNEGO-->  |   | '     + TGT websrv$            |   | '
  |____|     (NTLM)      |   |/                               |   |/ 
  /::::/                 '---'  <----3) TGS-REP-------------< '---'  
- client                websrv   + TGS client > HTTP/websrv
+ client                websrv   + ST client > HTTP/websrv
 
 #+end_example
 
 1) The client is authenticated against the HTTP/websrv service by using NTLM (or
    any other authentication protocol) since it doesn't support Kerberos.
 
-2) The websrv requests a S4U2self TGS for the client by sending a TGS-REQ to the
+2) The websrv requests a S4U2self ST for the client by sending a TGS-REQ to the
    KDC.
 
 3) The KDC examines the requests, the websrv$ TRUSTED_TO_AUTH_FOR_DELEGATION
    flag and if the client is protected against delegation. If everything is
-   correct, the KDC returns a HTTP/websrv TGS for the client, which may or may
+   correct, the KDC returns a HTTP/websrv ST for the client, which may or may
    not be FORWARDABLE depending on the variables mentioned.
 
 Moreover, S4U2Self can be used across domains. Let's see how this works:
@@ -7280,7 +7290,7 @@ Moreover, S4U2Self can be used across domains. Let's see how this works:
  |  + TGT websrv$ (client) > foo   |
  |                                 |
  '----->>---7) TGS-REP---->>-------'                
-   + TGS client > HTTP/websrv
+   + ST client > HTTP/websrv
 
 #+end_example
 
@@ -7292,19 +7302,19 @@ Moreover, S4U2Self can be used across domains. Let's see how this works:
 
 3) The KDC returns an inter-realm TGT for =bar= to websrv.
 
-4) websrv uses its new inter-realm TGT to ask to =bar= KDC for a HTTP/websrv TGS
+4) websrv uses its new inter-realm TGT to ask to =bar= KDC for a HTTP/websrv ST
    for the client.
 
 5) The bar KDC determines that the HTTP/websrv service is in the =foo= domain,
-   so it cannot issue a TGS for HTTP/websrv service, but it returns a referral
-   TGT for =foo= domain that indicates that a HTTP/websrv TGS for the client was
+   so it cannot issue a ST for HTTP/websrv service, but it returns a referral
+   TGT for =foo= domain that indicates that a HTTP/websrv ST for the client was
    requested. 
 
-6) Then, websrv uses this referral TGT issued by the =bar= KDC to ask for a TGS
+6) Then, websrv uses this referral TGT issued by the =bar= KDC to ask for a ST
    for client to the =foo= KDC.
 
 7) The foo KDC inspects the request and the referral TGT and determines that an
-   HTTP/websrv TGS for client can be issued.   
+   HTTP/websrv ST for client can be issued.   
 
 ***** S4U2self and S4U2proxy
 :PROPERTIES:
@@ -7324,45 +7334,45 @@ them used together.
    |            + TGT websrv$                   |   | '
    |                                            |   |/ 
    |   .--<<----2) TGS-REP-----<<-------------< '---'  
-   |   |        + TGS admin > HTTP/websrv       ^   v
+   |   |        + ST admin > HTTP/websrv        ^   v
    |   |                                        |   |
    |   |                                        |   |
    ^   v                                        |   |
    .---. >->>---3) TGS-REQ----->>---------------'   |
   /   /|        + SPN: MSSQLSvc/dbsrv               |
  .---. |        + TGT websrv$                       |
- |   | '        + TGS admin > HTTP/websrv           |
+ |   | '        + ST admin > HTTP/websrv            |
  |   |/                                             |
  '---'  <--<<---4) TGS-REP-----<<-------------------'
- websrv         + TGS admin > MSSQLSvc/dbsrv
+ websrv         + ST admin > MSSQLSvc/dbsrv
    v
    |
    |                                      .---.
    |                                     /   /|
    '------------5) AP-REQ-------------> .---. |
-       + TGS admin > MSSQLSvc/dbsrv     |   | '
+       + ST admin > MSSQLSvc/dbsrv      |   | '
                                         |   |/ 
                                         '---'  
                                         dbsrv
 
 #+end_example
 
-1) The websrv requests a HTTP/websrv TGS for the admin user to KDC by using 
+1) The websrv requests a HTTP/websrv ST for the admin user to KDC by using 
    S4U2self through a TGS-REQ.
 
 2) The KDC examines the requests, the websrv$ TRUSTED_TO_AUTH_FOR_DELEGATION
    flag and if admin is protected against delegation. If everything is correct,
-   the KDC returns a HTTP/websrv TGS for the client, which may or may not be
+   the KDC returns a HTTP/websrv ST for the client, which may or may not be
    FORWARDABLE depending on the variables mentioned in [[#s4u2self][S4U2Self]].
 
-3) Then, websrv asks for a MSSQLSvc/dbsrv TGS on behalf of admin by using the
-   S4U2self TGS, and its own TGT. 
+3) Then, websrv asks for a MSSQLSvc/dbsrv ST on behalf of admin by using the
+   S4U2self ST, and its own TGT. 
 
 4) The KDC checks that the service user websrv$ is allowed to ask delegation
    tickets for MSSQLSvc/dbsrv following the rules mentioned in [[#s4u2proxy][S4U2Proxy]]. Then,
-   it returns a MSSQLSvc/dbsrv TGS for admin.
+   it returns a MSSQLSvc/dbsrv ST for admin.
 
-5) websrv uses the MSSQLSvc/dbsrv TGS to authenticate itself against
+5) websrv uses the MSSQLSvc/dbsrv ST to authenticate itself against
    the database by impersonating the admin.
 
 Therefore, as we can see, it is possible to chain S4U2self and S4U2proxy so you
@@ -7412,7 +7422,7 @@ module]] or [[https://linux.die.net/man/1/ldapsearch][ldapsearch]].
 
 Once you located the accounts and want to perform some related Kerberos
 operations, there are many tools that allows to perform ticket requests through
-the S4U extensions and get TGS for arbitrary users to impersonate them. You can
+the S4U extensions and get ST for arbitrary users to impersonate them. You can
 use the [[https://labs.f-secure.com/archive/trust-years-to-earn-seconds-to-break/#:~:text=Practical%20Exploitation][MIT kerberos utils]] ([[https://web.mit.edu/kerberos/krb5-1.12/doc/admin/admin_commands/ktutil.html][ktutitl]], [[https://web.mit.edu/kerberos/krb5-devel/doc/user/user_commands/kinit.html][kinit]], [[https://web.mit.edu/kerberos/krb5-devel/doc/user/user_commands/kvno.html][kvno]]), [[https://github.com/GhostPack/Rubeus#s4u][Rubeus]], [[https://github.com/SecureAuthCorp/impacket/blob/master/examples/getST.py][getST.py]] impacket
 script or [[https://gitlab.com/Zer1t0/cerbero/][cerbero]].
 
@@ -7503,7 +7513,7 @@ compromise the computer.
 
 Actually, since you have computer account credentials, you can enable RBCD to
 itself (reflective RBCD). This way you just need to use [[https://shenaniganslabs.io/2019/01/28/Wagging-the-Dog.html#empowering-active-directory-objects-and-reflective-resource-based-constrained-delegation][S4U2self to ask for a
-ticket for the computer CIFS service]] in order to get a TGS to compromise the
+ticket for the computer CIFS service]] in order to get a ST to compromise the
 host. This even works to impersonate protected user accounts. In case you are
 wondering, this method is required since domain computer accounts doesn't have
 permissions by default to access remotely to the computer itself as
@@ -7521,12 +7531,12 @@ administrator.
   /|\                   + TGT websrv$                               |   | '
   / \                                                               |   |/ 
 websrv$ <-----------------3) TGS-REP------------------------------< '---'  
-   v                  + TGS admin > CIFS/websrv                      DC (KDC)
+   v                  + ST admin > CIFS/websrv                       DC (KDC)
    |
    |                                        .---.
    |                                       /   /|
    '---------4) AP-REQ------------------> .---. |
-         + TGS admin > CIFS/websrv        |   | '
+         + ST admin > CIFS/websrv         |   | '
                                           |   |/ 
                                           '---'  
                                           websrv
@@ -7559,7 +7569,7 @@ This could be a little tricky, so lets view an example were the dbsrv is
 compromised and has Classic Constrained Delegation enabled but without Protocol
 Transition. However, websrv is also compromised and can be used for RBCD
 Protocol Transition. Then RBCD is enabled from websrv to dbsrv and websrv is
-used to mimic protocol transition and finally get an admin TGS to compromise
+used to mimic protocol transition and finally get an admin ST to compromise
 filesrv in the following way.
 
 #+caption: Using RBCD as Protocol Transition
@@ -7569,10 +7579,10 @@ filesrv in the following way.
    .-------1) TGS-REQ-->>------------> .---. <----6) TGS-REQ----<<------------.  
    |    + SPN: HTTP/websrv            /   /| + SPN: CIFS/filesrv              |
    |    + For user: admin            .---. | + TGT dbsrv$                     |
-   |    + TGT websrv$                |   | ' + TGS(F) admin > MSSQLSvc/dbsrv  |
+   |    + TGT websrv$                |   | ' + ST(F) admin > MSSQLSvc/dbsrv   |
    |                                 |   |/                                   |
    |  .----2) TGS-REP--<<----------< '---' >------7) TGS-REP---->>--------.   |             
-   |  | + TGS admin > HTTP/websrv    ^   v   + TGS admin > CIFS/filesrv   |   |
+   |  | + ST admin > HTTP/websrv     ^   v   + ST admin > CIFS/filesrv    |   |
    |  |                              |   |                                |   |
    |  |                              |   |                                |   |
    |  |                              |   |                                |   |
@@ -7580,29 +7590,29 @@ filesrv in the following way.
    .---. >--------3) TGS-REQ---->>---'   |                                |   |
   /   /|  + SPN: MSSQLSvc/dbsrv          |                                |   |
  .---. |  + TGT websrv$                  |                                |   |
- |   | '  + TGS admin > HTTP/websrv      |                                |   |
+ |   | '  + ST admin > HTTP/websrv       |                                |   |
  |   |/                                  |                                |   |
  '---' <----------4) TGS-REP----<<-------'                                v   ^
- websrv  + TGS(F) admin > MSSQLSvc/dbsrv                                  .---. 
+ websrv  + ST(F) admin > MSSQLSvc/dbsrv                                   .---. 
    v                                                                     /   /|  
    |                                                                    .---. | 
    '------------------5) Send the ticket----->>>>---------------------> |   | '                      
-                    + TGS(F) admin > MSSQLSvc/dbsrv                     |   |/  
+                    + ST(F) admin > MSSQLSvc/dbsrv                      |   |/  
                                                                         '---'   
                                                                         dbsrv   
                                   .---.                                  v
                                  /   /|                                  |
                                 .---. | <--8) AP-REQ---<<----------------'
-                                |   | '  + TGS admin > CIFS/filesrv
+                                |   | '  + ST admin > CIFS/filesrv
                                 |   |/ 
                                 '---'  
                                 filesrv
 #+end_example
 
 In the first four steps, websrv uses S4U2self and S4U2proxy for acquire a
-forwardable MSSQLSvc/dbsrv TGS for admin, thus mimicking Protocol Transition.
-Then websrv sends this admin TGS to dbsrv, that uses it for S4U2proxy and
-request a CIFS/filesrv TGS for admin, that allows to compromise filesrv. 
+forwardable MSSQLSvc/dbsrv ST for admin, thus mimicking Protocol Transition.
+Then websrv sends this admin ST to dbsrv, that uses it for S4U2proxy and
+request a CIFS/filesrv ST for admin, that allows to compromise filesrv. 
 
 ** Logon types
 :PROPERTIES:

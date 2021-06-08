@@ -103,7 +103,7 @@ one? Should they go to the different offices and restore the user password?
 Should they create a new user for each intern in the file server that allows
 only to see files in a directory?
 
-Well, they could do that, though I would be a lot of work (and a waste of money
+Well, they could do that, though it would be a lot of work (and a waste of money
 for the company). But since they are smart people, they have all the computers
 connected in an Active Directory network, so they can perform all these
 operations from their workstation.

@@ -21,7 +21,7 @@ mechanisms/protocols exist.
 
 The information present here come from open sources and my own experience
 with Active Directory. However, I cannot be certain that everything stated here
-is correct, so you are encourage to perform your own test and in case you found
+is correct, so you are encourage to perform your own test and in case you find
 any error, please let me know.
 
 Moreover, I know that not everything about Active Directory is covered here, but it
@@ -44,7 +44,7 @@ specific topic, there are great resources out there.
 By the way, *I would like to thank to all of the content creators* that over the
 years have share knowledge with the community through tools, blogs, conference
 talks, etc. I have consult so many resources that it would be impossible for me
-to thank all the content creators one by one, but if you found a link to one of
+to thank all the content creators one by one, but if you find a link to one of
 your resources or a resource you have collaborated directly (by adding a
 feature to a tool, or helping your friend to write the post) or indirectly (for
 example creating a library/snippet/language/OS/IDE/editor that is used by a
@@ -290,7 +290,7 @@ PS C:\Users\Administrator\Downloads> (Get-ADDomain).DomainMode
 Windows2016Domain
 #+end_src
 
-Then if, for example, you found a domain/forest with Windows2012 mode, you can
+Then if, for example, you find a domain/forest with Windows2012 mode, you can
 know that all the Domain Controllers are at least Windows Server 2012. You must
 be aware of the mode in order to use some characteristics of the domain, for
 example, the =Protected Users= group requires a Windows2012R2 mode.
@@ -1252,7 +1252,7 @@ offer by each port:
 - 49152-65535 [[#rpc][RPC]] Endpoints: Random RPC ports where different RPC
   services/interfaces listen to clients.
 
-Depending on the DC configuration you can also found the port 3389 open, which
+Depending on the DC configuration you can also find the port 3389 open, which
 allows [[#rdp][RDP]] connections or [[https://docs.microsoft.com/en-US/troubleshoot/windows-server/networking/service-overview-and-network-port-requirements][many other services]].
 
 *** Domain database dumping
@@ -1755,7 +1755,7 @@ password.
 :custom_id: lsa-secrets
 :END:
 
- Other location to found credentials is the registry. In the registry the
+ Other location to find credentials is the registry. In the registry the
  computer stores some credentials required in order to work properly. One of the
  places where sensible credentials are stored is in the [[https://passcape.com/index.php?section=docsys&cmd=details&id=23][LSA secrets]].
 
@@ -1781,7 +1781,7 @@ password.
  HKEY_LOCAL_MACHINE\SECURITY\Policy\Secrets\_SC_mysql
  #+end_src
 
- In the LSA secrets you can found:
+ In the LSA secrets you can find:
 
  - Domain Computer Account :: In order to work as part of the domain,
    the computer needs an user account in the domain. Therefore, the username and
@@ -1964,9 +1964,9 @@ own commands in the Powershell history.
 Set-PSReadlineOption -HistorySaveStyle SaveNothing
 #+END_SRC
 
-**** Other places to found credentials in Windows
+**** Other places to find credentials in Windows
 :PROPERTIES:
-:custom_id: other-places-to-found-credentials-in-windows
+:custom_id: other-places-to-find-credentials-in-windows
 :END:
 
 Moreover, you can also search for credentials in scripts or configuration files
@@ -2077,7 +2077,7 @@ credentials. But there are many places that can be interesting to look...
 
  Additionally, when a domain user is authenticated in the machine, a Kerberos
  ticket is retrieved. You can take these tickets and impersonate the users in the
- domain. You can normally found the tickets under the =/tmp= directory in files
+ domain. You can normally find the tickets under the =/tmp= directory in files
  with the format =krb5cc_%{uid}= where uid is the [[https://linuxhandbook.com/uid-linux/][user UID]]. However, it is
  also possible that tickets are stored in the [[https://man7.org/linux/man-pages/man7/keyrings.7.html][Linux kernel keys]] instead of files,
  but you can grab them and convert to files by using [[https://github.com/TarlogicSecurity/tickey][tickey]]. Once you have the
@@ -2152,9 +2152,9 @@ you can unset the =HISTFILE= environment variable or using a [[https://www.if-no
 unset HISTFILE  
 #+end_src
 
-**** Other places to found credentials in Linux
+**** Other places to find credentials in Linux
 :PROPERTIES:
-:custom_id: other-places-to-found-credentials-in-linux
+:custom_id: other-places-to-find-credentials-in-linux
 :END:
 
 
@@ -2908,7 +2908,7 @@ are used by machines:
   
 
 Therefore, the following processes are vital for a computer to being able to
-found the correct address to communicate:
+find the correct address to communicate:
 
 - Hostname-IP resolution ::
 
@@ -2933,7 +2933,7 @@ found the correct address to communicate:
   to the request identifying itself as the target to receive the connection.
 
 - IP configuration ::
-  In order to use an IP and being able to found the central server to resolve
+  In order to use an IP and being able to find the central server to resolve
   IPs, computers need to be configured. This configuration can be done manually
   for each computer or it can be done by using a protocol like [[#dhcp][DHCP]], where a
   server provides with configuration options to the computers of the network.

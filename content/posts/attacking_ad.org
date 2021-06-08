@@ -22,13 +22,13 @@ mechanisms/protocols exist.
 The information present here come from open sources and my own experience
 with Active Directory. However, I cannot be certain that everything stated here
 is correct, so you are encourage to perform your own test and in case you find
-any error, please let me know.
+any error, please [[mailto:zer1t0ps@protonmail.com][let me know]].
 
 Moreover, I know that not everything about Active Directory is covered here, but it
 is my intention to cover at least the basic knowledge required to understand
 Active Directory and their attacks, and expand this source in the future. So, if
 you feel that I miss something that a pentester should know related Active
-Directory, please let me know.
+Directory, please [[mailto:zer1t0ps@protonmail.com][let me know]].
 
 Disclaimer: This is done for educational purposes, and you should only apply the
 attacks described here to systems that you have permission for.

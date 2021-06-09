@@ -9018,7 +9018,9 @@ respectively.
 
 One great utility to manage systems is Powershell remoting, that allows the
 client to establish a Powershell session on remote computers and perform all
-kind of tasks with [[https://docs.microsoft.com/en-us/powershell/][Powershell]].
+kind of tasks with [[https://docs.microsoft.com/en-us/powershell/][Powershell]]. By default, Powershell remoting is enabled by
+default in Windows server versions (not client like Windows 10)
+[[https://www.dtonias.com/enable-powershell-remoting-check-enabled/][since Windows Server 2012 R2]].
 
 #+caption: Remote PowerShell session with cleartext credentials
 #+begin_src powershell
@@ -9077,6 +9079,32 @@ Apart from being useful for [[https://www.ired.team/offensive-security/lateral-m
 [[https://docs.microsoft.com/en-us/powershell/scripting/learn/remoting/jea/overview?view=powershell-7.1][JEA endpoints]] (only available over WinRM) as a [[https://www.labofapenetrationtester.com/2019/08/race.html][persistence mechanism]].
 
 However, be careful in a pentest since [[https://es.slideshare.net/nikhil_mittal/hacked-pray-that-the-attacker-used-powershell][Powershell has many logging features]].
+
+*** Trusted Hosts
+:PROPERTIES:
+:custom_id: trusted-hosts
+:END:
+
+Apart from being enabled to use it, Powershell required also that the
+TrustedHost variable is correctly set *in the client*.
+
+By default, Powershell remoting allows you to connect to all machines in the
+domain, by using Kerberos. However, in case you want to connect a machine of a
+different domain, you need to add that IP to the TrustedHost value (or use '*'
+for any machine). In that case, you have to *configure TrustedHost in the
+client*, not in the server (as you may think since from a security perspective
+would be the logical idea).
+
+#+caption: Configure TrustedHost in client to allow connections to any machine
+#+begin_src powershell
+PS C:\> Set-Item wsman:localhost\client\TrustedHosts -Value * -Force
+#+end_src
+
+As you may know, you can also use Powershell from a Linux computer, however,
+I was unable to set the TrustedHosts in Linux (or similar action to use
+Negotiate) in order to connect from a Linux computer to a Windows computer in a
+different domain, if you know how to do it, please [[mailto:zer1t0ps@protonmail.com][let me know]].
+
 
 ** SSH
 :PROPERTIES:

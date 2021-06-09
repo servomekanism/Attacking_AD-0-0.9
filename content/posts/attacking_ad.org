@@ -6798,8 +6798,10 @@ of the [[#rpc-over-smb][RPRN RPC interface]] that allows to any "[[https://docs.
 to the target computer a server to connect through SMB.
 
 To trigger the printer bug you can use the [[https://github.com/leechristensen/SpoolSample][SpoolSample]] tool or the [[https://github.com/dirkjanm/krbrelayx/blob/master/printerbug.py][printerbug.py]]
-script. Moreover, you can scan for computers that have the spool service enabled
-(by default it is) with the [[https://github.com/vletoux/SpoolerScanner][SpoolerScan.ps1]] script.
+script. You must pass the hostname as argument for the target machine to use
+Kerberos, if you provide the IP, then NTLM will be use for authentication and no
+delegation will be performed. Moreover, you can scan for computers that have the
+spool service enabled (by default it is) with the [[https://github.com/vletoux/SpoolerScanner][SpoolerScan.ps1]] script.
 
 Besides, to monitor for the apparition of TGTs you can use the
 [[https://github.com/GhostPack/Rubeus#monitor][Rubeus monitor]] command.
@@ -8788,8 +8790,8 @@ through SMB:
   a DHCP server.
 
 - RPRN :: [[https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rprn/d42db7d5-f141-4466-8f47-0a4be14e2fc1][RPRN]] (Print System Remote) is used to manage prints from a remote
-  computer. You can use [[https://github.com/leechristensen/SpoolSample][SpoolSample]] to trigger the [[https://www.slideshare.net/harmj0y/derbycon-the-unintended-risks-of-trusting-active-directory/41][printer bug]] trough
-  RPRN.
+  computer. You can use [[https://github.com/leechristensen/SpoolSample][SpoolSample]] or [[https://github.com/dirkjanm/krbrelayx/blob/master/printerbug.py][printerbug.py]] to trigger the [[https://www.slideshare.net/harmj0y/derbycon-the-unintended-risks-of-trusting-active-directory/41][printer bug]]
+  trough RPRN.
 
 - RRP :: [[https://docs.microsoft.com/en-us/openspecs/windows_protocols/MS-RRP/0fa3191d-bb79-490a-81bd-54c2601b7a78][RRP]] (Windows Remote Registry Protocol) allows to read and modify the
   registry keys from a remote computer. You can use [[https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/reg][reg]] (if "The network path was

@@ -557,7 +557,7 @@ in plaintext, but the following secrets derived from it are saved:
 - Kerberos keys
 
 Needless to say, that user secrets cannot be retrieved by non admin users.
-No even the domain computers can access to them, but leave the authentication to
+Not even the domain computers can access to them, but leave the authentication to
 the Domain Controller.
 
 In order to get the user secrets, you need administrator privileges (or

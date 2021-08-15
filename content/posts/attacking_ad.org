@@ -8911,6 +8911,11 @@ domain to query a Domain Controllers:
 Moreover, there are some RPC interfaces that cannot be used over SMB, but you
 can use them directly over TCP:
 
+- DRSR :: [[https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-drsr/f977faaa-673e-4f66-b9bf-48c640241d47][DRSR]] (Directory Replication Service Remote) is the protocol used by
+  domain controllers to replicate data. It can be also used for an attacker with
+  enough privileges to replicate the domain users credentials by performing a
+  [[https://adsecurity.org/?p=1729][dcsync attack]] with [[https://github.com/gentilkiwi/mimikatz/wiki/module-~-lsadump#dcsync][mimikatz lsadump::dcsync]] or [[https://github.com/SecureAuthCorp/impacket/blob/master/examples/secretsdump.py][impacket secretsdump.py]].
+
 - DCOM :: [[https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-dcom/4a893f3d-bd29-48cd-9f43-d9777a4415b0][DCOM]] (Distributed COM) is used to interact with [[https://docs.microsoft.com/en-us/windows/win32/com/the-component-object-model][COM]] (Component Object
   Model) objects of remote computers. COM objects are very useful and can be
   used for a lot of things, like executing commands, that can be accomplished by
@@ -8920,28 +8925,27 @@ can use them directly over TCP:
   implementation of [[https://en.wikipedia.org/wiki/Common_Information_Model_(computing)][CIM]] (Common Information Model) built on top of COM objects
   that allows to query and manipulate different parts of a Windows machine from
   a single interface. Is very versatile and can be used with [[https://docs.microsoft.com/en-us/windows/win32/wmisdk/wmic][wmic]], Powershell
-  cmdLets like [[https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-wmiobject?view=powershell-5.1][Get-WmiObject]] or impacket WMI scripts like [[https://github.com/SecureAuthCorp/impacket/blob/master/examples/wmiexec.py][wmiexec.py]]. 
+  cmdLets like [[https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-wmiobject?view=powershell-5.1][Get-WmiObject]] or impacket WMI scripts like [[https://github.com/SecureAuthCorp/impacket/blob/master/examples/wmiexec.py][wmiexec.py]].
 
-- DRSR :: [[https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-drsr/f977faaa-673e-4f66-b9bf-48c640241d47][DRSR]] (Directory Replication Service Remote) is the protocol used by
-  domain controllers to replicate data. It can be also used for an attacker with
-  enough privileges to replicate the domain users credentials by performing a
-  [[https://adsecurity.org/?p=1729][dcsync attack]] with [[https://github.com/gentilkiwi/mimikatz/wiki/module-~-lsadump#dcsync][mimikatz lsadump::dcsync]] or [[https://github.com/SecureAuthCorp/impacket/blob/master/examples/secretsdump.py][impacket secretsdump.py]].
+- WCCE :: WCCE (Windows Client Certificate Enrollment Protocol) is a DCOM
+  interface that allows users to requests certificates and other services
+  related with CAs in [[#adcs][ADCS]]. It can be used with [[https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certreq_1][certreq]] or [[https://github.com/GhostPack/Certify][Certify]].
 
 
 #+caption: RPC protocols that works over TCP
 #+begin_example
                                                         .--------
- .-----.     .------.                                   |
- | WMI |---->| DCOM |>----.                             |
- '-----'     '------'     |        .------.            .---
-                          |------->| RPC  |>--TCP--.-->| 135 (EPM)
-        .-----------.     |        '------'        |   '---
-        | (DC) DRSR |>----'           |            |     |  Windows
-        '-----------'                 |            |     |
-                                      |            |     |  machine
-                                      |            |   .---
-                                      |            '-->| 49152 - 65535
-                                      |                '---  
+        .-----------.                                   |
+        | (DC) DRSR |>-------.                          |
+        '-----------'        |     .------.            .---
+                             |---->| RPC  |>--TCP--.-->| 135 (EPM)
+ .-----.        .------.     |     '------'        |   '---
+ | WMI |>--.--->| DCOM |>----'        |            |     |  Windows
+ '-----'   |    '------'              |            |     |
+           |                          |            |     |  machine
+ .------.  |                          |            |   .---
+ | WCCE |>-'                          |            '-->| 49152 - 65535
+ '------'                             |                '---  
                                       |                  |
                                       |                  |
                                 .------------.           '--------
@@ -9106,7 +9110,6 @@ As you may know, you can also use Powershell from a Linux computer, however,
 I was unable to set the TrustedHosts in Linux (or similar action to use
 Negotiate) in order to connect from a Linux computer to a Windows computer in a
 different domain, if you know how to do it, please [[mailto:zer1t0ps@protonmail.com][let me know]].
-
 
 ** SSH
 :PROPERTIES:

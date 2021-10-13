@@ -9305,6 +9305,35 @@ Microsoft products used/enhanced it for multiple purposes. This section includes
 some Microsoft software that the attacker should be aware in case of being
 installed in the domain.
 
+** ADCS
+:PROPERTIES:
+:custom_id: adcs
+:END:
+
+The Active Directory Certificate Services (ADCS) are...
+
+I didn't have time to redact this properly, but is a great source of pwn.
+Please, read the following resources. They completely deserves your time:
+
+- [[https://posts.specterops.io/certified-pre-owned-d95910965cd2][Certified Pre-Owned (Post)]]
+- [[https://www.specterops.io/assets/resources/Certified_Pre-Owned.pdf][Certified Pre-Owned (Whitpaper)]]
+- [[https://www.exandroid.dev/2021/06/23/ad-cs-relay-attack-practical-guide/][AD CS relay attack - practical guide]]
+- [[https://dirkjanm.io/ntlm-relaying-to-ad-certificate-services/][NTLM relaying to AD CS - On certificates, printers and a little hippo]]
+  
+Here are the related tools:
+
+- [[https://github.com/GhostPack/Certify][Certify]]: Ask for certificates and review weaknesses in ADCS configuration.
+- [[https://github.com/GhostPack/ForgeCert][ForgeCert]]: Build custom/golden certificate to impersonate users.
+- [[https://github.com/gentilkiwi/kekeo][Kekeo]]: In this case used to get a TGT or retrieve the NT hash using a certificate.
+- [[https://github.com/GhostPack/Rubeus/][Rubeus]]: In this case used to get a TGT or retrieve the NT hash using a certificate.
+- [[https://github.com/ExAndroidDev/impacket/tree/ntlmrelayx-adcs-attack][ntlmrelayx.py (ExAndroidDev impacket fork)]]: Perform NTLM relay attacks
+  against ADCS web endpoint.
+- [[https://github.com/topotam/PetitPotam][PetitPotam]]: To trigger the NTLM relay attack.
+- [[https://github.com/dirkjanm/PKINITtools][PKINITTools]]:  In this case used to retrieve the NT hash using a certificate,
+  among others. Python tools.
+- [[https://github.com/zer1t0/certi][certi.py]]: Impacket version of Certify. Ask for certificate and review ADCS
+  configuration. 
+
 ** LAPS
 :PROPERTIES:
 :custom_id: laps

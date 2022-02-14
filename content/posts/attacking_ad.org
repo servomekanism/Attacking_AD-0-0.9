@@ -1635,8 +1635,16 @@ password.
  will be required to access to other domain computers.
 
  #+BEGIN_QUOTE
- Be aware that users authenticated through NTLM or Kerberos will not let cached
- credentials in the computer (except if Kerberos delegation is enabled).
+ Be aware that remote users authenticated through [[#ntlm][NTLM]] or [[#Kerberos][Kerberos]] will not let
+ cached credentials in the computer (in the lsass process), since those
+ protocols don't really sent the user credentials to the computer (except if
+ Kerberos delegation is enabled), but a proof, that can be either a NTLM hash or
+ Kerberos ticket generated with the credentials.
+
+ In summary, you cannot extract from lsass (with mimikatz) the credentials of
+ remote users authenticated with NTLM or Kerberos. (Unless the protocol/service
+ sends them explicitly after authentication, as RDP does, but this has nothing to
+ do with NTLM or Kerberos)
  #+END_QUOTE
 
  The credentials are cached by some of the [[#windows-ssps][SSPs]] (Security Support Providers) that
@@ -1646,8 +1654,9 @@ password.
  - The [[#kerberos-ssp][Kerberos SSP]] manages the Kerberos authentication and is responsible to
    store the tickets and Kerberos keys for the current logged users.
   
- - The [[#ntlm-ssp][NTLMSSP]] or MSV SSP handles the NTLM authentication
-   and is responsible for storing the NTLM hashes for the current logged users.
+ - The [[#ntlm-ssp][NTLMSSP]] or MSV SSP handles the NTLM authentication and is responsible for
+   storing the NT hashes for the current logged users. It will not cache the
+   credentials used 
 
  - The [[#digest-ssp][Digest SSP]] implements the Digest Access protocol, used by HTTP
    applications. This is the SSP that stores the cleartext user password in

@@ -796,7 +796,8 @@ Another thing to take into account is that in a organization, each person has
 its own user, and even certain people like the IT department could have more
 than user per person to perform different tasks. Moreover, also *each computer of
 the domain has its own user*, since they also need to perform their own actions
-in the domain.
+in the domain, like for instance, update the Group Policies, verify the
+credentials of domain users logged in the computer, etc.
 
 The difference between user accounts and computers accounts is that the firsts
 are stored as instances of [[https://docs.microsoft.com/en-us/windows/win32/adschema/c-user][User class]] in the database whereas the others are

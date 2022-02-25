@@ -4823,10 +4823,11 @@ However, the NT hash is stored in the Active Directory [[#database][database]], 
 [[#domain-controllers][Domain Controllers]].
     
 Therefore, in order to verify the AUTHENTICATE message for a domain account, the
-target machine will send a Netlogon request to the DC asking it to verify the
-client response to the challenge. The DC verifies this response and returns the
-necessary information to the machine, such as the session key, in order to
-continue with the application session.
+target machine will send a Netlogon ([[https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-nrpc/d17f1077-de4b-4fcd-8867-39068cb789f5][NetrLogonSamLogonWithFlags]]) request to the
+DC asking it to verify the client response to the challenge. The DC verifies
+this response and returns the necessary information to the machine, such as the
+session key and user privileges, in order to continue with the application
+session.
 
 #+caption: NTLM process with domain accounts
 #+begin_example

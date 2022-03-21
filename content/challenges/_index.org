@@ -77,3 +77,4 @@ case it could be useful for someone.
 ** More
 
 - https://github.com/mikeprivette/awesome-sec-challenges
+- https://github.com/apsdehal/awesome-ctf#wargames

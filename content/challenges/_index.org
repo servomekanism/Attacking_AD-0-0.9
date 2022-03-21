@@ -11,7 +11,10 @@ case it could be useful for someone.
 - http://flaws.cloud/
 - http://flaws2.cloud/
 - https://github.com/RhinoSecurityLabs/cloudgoat
-  
+- https://github.com/nccgroup/sadcloud
+- https://github.com/BishopFox/iam-vulnerable
+
+
 ** Crypto
 - https://cryptopals.com/
 - https://cryptohack.org/
@@ -26,6 +29,10 @@ case it could be useful for someone.
 - https://github.com/shellphish/how2heap
 - https://pwn.college/
   
+
+** GCP Security
+- https://thunder-ctf.cloud/
+
 ** Misc
 - https://overthewire.org/
 - https://www.root-me.org/
@@ -65,3 +72,8 @@ case it could be useful for someone.
 - https://xss.pwnfunction.com/
 - https://github.com/tegal1337/0l4bs
 - https://application.security/free-application-security-training
+
+
+** More
+
+- https://github.com/mikeprivette/awesome-sec-challenges

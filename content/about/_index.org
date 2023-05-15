@@ -4,7 +4,8 @@
 * Contact
 
 - Email: [[mailto:zer1t0ps@protonmail.com][zer1t0ps@protonmail.com]]
+- Twitter: [[https://twitter.com/zer1t0][@zer1t0]]
 
 * About this web page
 This web style is powered by [[https://gohugo.io/][Hugo]] and based on the [[https://themes.gohugo.io/hugo-classic/][Hugo Classic]] theme. You can
-check [[https://gitlab.com/Zer1t0/zer1t0.gitlab.io][the sources on gitlab]]. 
+check [[https://gitlab.com/Zer1t0/zer1t0.gitlab.io][the sources on gitlab]].

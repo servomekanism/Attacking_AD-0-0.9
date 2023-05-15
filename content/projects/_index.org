@@ -1,6 +1,10 @@
 #+title: Projects
 
-I will let here an index of my tools, since they are scattered throughout
+I will let here an index of some of my tools, since they are scattered throughout
 different repos due to they are created both in my free time and as part of my
 work.
+
+Anyway, I have more tools and stuff in my personal repos:
+- https://gitlab.com/Zer1t0/
+- https://github.com/zer1t0/
 

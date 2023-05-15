@@ -17,11 +17,16 @@ title = "zer1t0"
     weight = 1
 
 [[menu.main]]
-    name = "About"
-    url = "/about/"
-    weight = 3
-
-[[menu.main]]
     name = "challenges"
     url = "/challenges"
     weight = 2
+
+[[menu.main]]
+    name = "utils"
+    url = "/utils"
+    weight = 3
+
+[[menu.main]]
+    name = "About"
+    url = "/about/"
+    weight = 4

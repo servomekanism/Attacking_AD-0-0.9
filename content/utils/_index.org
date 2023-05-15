@@ -1,0 +1,80 @@
+#+title: Utils
+
+#+BEGIN_EXPORT html
+<noscript style="color: red;">Javascript is required for this page to work.</noscript>
+#+END_EXPORT
+
+
+* djb2 calculator
+
+
+#+BEGIN_EXPORT html
+<form id="djb2-form">
+    Text: <input type="text" name="text" placeholder="Text"><br>
+    Key: <input type="text" name="key" value="5381"><br>
+    As Unicode: <input type="checkbox" name="as-unicode"><br>
+    <button>Calculate djb2</button>
+</form>
+<br>
+<div id="djb2-answer">
+</div>
+<script>
+    function djb2(str, key) {
+        let hash = key;
+        for(let i = 0; i < str.length; i++) {
+            const c = str[i];
+            hash = hash * 33 + c;
+            hash = hash % 256**4;
+        }
+        return hash;
+    }
+
+    function encode_utf8(str) {
+        return new TextEncoder().encode(str);
+    }
+
+    function encode_utf16le(str) {
+        let buf = new ArrayBuffer(str.length * 2);
+        let bytes_buffer = new Uint8Array(buf);
+
+        for (let i = 0; i < str.length; i++) {
+            const cod = str.charCodeAt(i);
+            bytes_buffer[(i*2)] = cod & 0xff;
+            bytes_buffer[(i*2)+1] = cod >> 8 & 0xff;
+        }
+
+        return bytes_buffer;
+    }
+
+    function parse_dec_hex_int(int_str) {
+        if (/^\d+$/.test(int_str) || /^0x[\dABCDFabcdef]+$/.test(int_str)) {
+            return parseInt(int_str)
+        }
+        return NaN;
+    }
+
+    const djb2_form = document.getElementById("djb2-form");
+    djb2_form.addEventListener("submit", function(e) {
+        e.preventDefault();
+        const text = this.text.value.trim();
+        const as_unicode = this["as-unicode"].checked;
+
+        if (text == "") {
+            alert("Text must not be empty");
+            return;
+        }
+
+        const bs = as_unicode ? encode_utf16le(text) : encode_utf8(text);
+        const key = parse_dec_hex_int(this.key.value);
+
+        if (isNaN(key)) {
+            alert("Key: specify a number");
+            return;
+        }
+
+        const result = djb2(bs, key);
+        let answer_div = document.getElementById("djb2-answer");
+        answer_div.innerText = "Result: " + "0x" + result.toString(16);
+    });
+</script>
+#+END_EXPORT

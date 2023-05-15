@@ -5762,7 +5762,7 @@ and the session key to establish a connection with the client. Therefore, the
 
 In case of Active Directory, usually the target principals are services, that
 belongs to user accounts (or computer accounts, that are also users in Active
-Directory). In that case the TGTs are encrypted with the key of the account owner
+Directory). In that case the STs are encrypted with the key of the account owner
 of the service.
 
 From this information we can conclude a couple of things:

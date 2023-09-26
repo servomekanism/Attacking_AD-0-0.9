@@ -17,11 +17,11 @@ attacks that can be performed in a Active Directory network.
 In order to understand how to attack Active Directory (and any other
 technology), I think is important to not only know the tools, but how the
 tools work, what protocols/mechanisms they use, and why these
-mechanisms/protocols exist. 
+mechanisms/protocols exist.
 
 The information present here come from open sources and my own experience
 with Active Directory. However, I cannot be certain that everything stated here
-is correct, so you are encourage to perform your own test and in case you find
+is correct, so you are encouraged to perform your own tests and in case you find
 any error, please [[mailto:zer1t0ps@protonmail.com][let me know]].
 
 Moreover, I know that not everything about Active Directory is covered here, but it
@@ -38,7 +38,7 @@ topic is complex, so I put as many references to external resources as I could.
 *My major intention is to collect all of the Active Directory topics in a single
 place* that can be use to consult attacks/protocols/techniques, more than
 explain every single detail of an specific technique (even if I try to do it).
-So you are totally encourage to follow the hyperlinks to discover more about and
+So you are totally encouraged to follow the hyperlinks to discover more about and
 specific topic, there are great resources out there.
 
 By the way, *I would like to thank to all of the content creators* that over the
@@ -9586,7 +9586,7 @@ definitely, you should check its [[https://github.com/NetSPI/PowerUpSQL/wiki][wi
 :custom_id: recommended-resources
 :END:
 
-In this article there are many resources linked, and you are encourage to
+In this article there are many resources linked, and you are encouraged to
 follow them to learn more. However, there are some special sites that I
 consider very good and with lots of on Active Directory information:
 
@@ -9598,7 +9598,7 @@ consider very good and with lots of on Active Directory information:
 - [[https://syfuhs.net/][Steve on Security]]
 - [[https://www.labofapenetrationtester.com/][Lab of a Penetration Tester]]
 - [[https://www.ired.team/][ired.team]]
-  
+
 There many other incredible sites with Active Directory posts, but I these are
 special relevant since described many topics and are specially dedicated to
 Active Directory.
